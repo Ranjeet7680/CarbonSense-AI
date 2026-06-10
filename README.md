@@ -1,124 +1,116 @@
-🌍 CarbonSense AI – Intelligent Sustainability & ESG Platform
+# 🌍 CarbonSense AI – Intelligent Sustainability & ESG Platform
 
+![CarbonSense AI Banner](https://img.shields.io/badge/ClimateTech-AI%20Powered-green)
+![React](https://img.shields.io/badge/React-18-blue)
+![Firebase](https://img.shields.io/badge/Firebase-Backend-orange)
+![Machine Learning](https://img.shields.io/badge/ML-OLS%20Regression-purple)
 
+## 🚀 Overview
 
-
-🚀 Overview
 CarbonSense AI is an AI-powered sustainability platform that helps individuals and organizations measure, analyze, and reduce their carbon footprint through predictive analytics, ESG reporting, gamification, and personalized sustainability coaching.
+
 Built using React, Firebase, Machine Learning, and environmental datasets, the platform transforms complex carbon data into actionable sustainability insights.
-🎯 Vision
-Measure Today. Reduce Tomorrow. Sustain Forever.
 
-✨ Key Features
-🌱 Carbon Footprint Calculator
+### 🎯 Vision
 
-Quick Estimate Mode
-Advanced OLS Analysis Mode
-Real-time CO₂ calculations
-Smart recommendations
+**Measure Today. Reduce Tomorrow. Sustain Forever.**
 
-🤖 AI Sustainability Coach
+---
 
-Personalized sustainability guidance
-Dynamic profile-aware responses
-Goal tracking assistance
-Eco-friendly lifestyle suggestions
+## ✨ Key Features
 
-📊 Analytics Dashboard
+### 🌱 Carbon Footprint Calculator
 
-Emission trend analysis
-Category breakdown charts
-Carbon score monitoring
-Monthly progress tracking
+* Quick Estimate Mode
+* Advanced OLS Analysis Mode
+* Real-time CO₂ calculations
+* Smart recommendations
 
-🏆 Gamification System
+### 🤖 AI Sustainability Coach
 
-XP and Levels
-Sustainability Badges
-Community Rankings
-Achievement Tracking
+* Personalized sustainability guidance
+* Dynamic profile-aware responses
+* Goal tracking assistance
+* Eco-friendly lifestyle suggestions
 
-👥 Multi-Profile System
+### 📊 Analytics Dashboard
 
-User profile switcher
-Sandbox demonstration profiles
-Custom avatars
-Personalized carbon budgets
+* Emission trend analysis
+* Category breakdown charts
+* Carbon score monitoring
+* Monthly progress tracking
 
-🌍 Community Hub
+### 🏆 Gamification System
 
-Sustainability challenges
-Leaderboards
-Community Spotlight
-LinkedIn Demo Showcase
+* XP and Levels
+* Sustainability Badges
+* Community Rankings
+* Achievement Tracking
 
-📈 ESG & Enterprise Tools
+### 👥 Multi-Profile System
 
-ESG Reporting Dashboard
-Sustainability Monitoring
-Carbon Reduction Planning
-Organizational Analytics
+* User profile switcher
+* Sandbox demonstration profiles
+* Custom avatars
+* Personalized carbon budgets
 
+### 🌍 Community Hub
 
-🧠 Machine Learning Engine
+* Sustainability challenges
+* Leaderboards
+* Community Spotlight
+* LinkedIn Demo Showcase
+
+### 📈 ESG & Enterprise Tools
+
+* ESG Reporting Dashboard
+* Sustainability Monitoring
+* Carbon Reduction Planning
+* Organizational Analytics
+
+---
+
+## 🧠 Machine Learning Engine
+
 CarbonSense AI uses Ordinary Least Squares (OLS) regression trained on 10,000+ sustainability records.
-Model Inputs
 
-Transportation
-Vehicle Type
-Travel Distance
-Diet Pattern
-Energy Consumption
-Heating Source
-Waste Generation
-Recycling Habits
-Clothing Purchases
-Internet Usage
+### Model Inputs
 
-Output
+* Transportation
+* Vehicle Type
+* Travel Distance
+* Diet Pattern
+* Energy Consumption
+* Heating Source
+* Waste Generation
+* Recycling Habits
+* Clothing Purchases
+* Internet Usage
 
-Monthly Carbon Footprint (kg CO₂)
-Sustainability Score
-Reduction Recommendations
+### Output
 
+* Monthly Carbon Footprint (kg CO₂)
+* Sustainability Score
+* Reduction Recommendations
 
-🏅 Sustainability Levels
+---
 
+## 🏅 Sustainability Levels
 
+| Level   | Title                   |
+| ------- | ----------------------- |
+| Level 1 | Green Starter           |
+| Level 2 | Eco Learner             |
+| Level 3 | Sustainability Advocate |
+| Level 4 | Eco Warrior             |
+| Level 5 | Climate Champion        |
+| Level 6 | Net-Zero Hero           |
 
-Level
-Title
+---
 
+## 📂 Project Structure
 
-
-
-Level 1
-Green Starter
-
-
-Level 2
-Eco Learner
-
-
-Level 3
-Sustainability Advocate
-
-
-Level 4
-Eco Warrior
-
-
-Level 5
-Climate Champion
-
-
-Level 6
-Net-Zero Hero
-
-
-
-
-📂 Project Structure
+```text
 src/
 ├── components/
 │   ├── Auth.jsx
@@ -135,96 +127,119 @@ src/
 ├── dataset_summary.json
 ├── main.jsx
 └── App.jsx
+```
 
+---
 
-🛠 Technology Stack
-Frontend
+## 🛠 Technology Stack
 
-React 18
-Vite
-Tailwind CSS
-Material Design 3
+### Frontend
 
-Backend
+* React 18
+* Vite
+* Tailwind CSS
+* Material Design 3
 
-Firebase Firestore
-Firebase Authentication
+### Backend
 
-Data & Analytics
+* Firebase Firestore
+* Firebase Authentication
 
-Python
-OLS Regression
-Carbon Emission Dataset
-Chart.js
+### Data & Analytics
 
-Deployment
+* Python
+* OLS Regression
+* Carbon Emission Dataset
+* Chart.js
 
-Vercel
-Firebase Hosting
+### Deployment
 
+* Vercel
+* Firebase Hosting
 
-📊 Core Modules
-User Dashboard
+---
 
-Carbon Score
-Monthly Trends
-Sustainability Insights
+## 📊 Core Modules
 
-Carbon Calculator
+### User Dashboard
 
-Transportation Analysis
-Energy Analysis
-Food Impact Assessment
-Waste Analysis
+* Carbon Score
+* Monthly Trends
+* Sustainability Insights
 
-Dataset Analytics
+### Carbon Calculator
 
-Correlation Matrix
-Emission Histograms
-Lifestyle Comparisons
+* Transportation Analysis
+* Energy Analysis
+* Food Impact Assessment
+* Waste Analysis
 
-Community
+### Dataset Analytics
 
-Leaderboards
-Challenges
-Rewards
+* Correlation Matrix
+* Emission Histograms
+* Lifestyle Comparisons
 
-Learning Hub
+### Community
 
-Sustainability Courses
-Climate Articles
-Educational Resources
+* Leaderboards
+* Challenges
+* Rewards
 
+### Learning Hub
 
-🔥 Future Roadmap
+* Sustainability Courses
+* Climate Articles
+* Educational Resources
 
-AI Carbon Forecasting
-ESG Compliance Reports
-Voice-Based Sustainability Assistant
-Carbon Credit Marketplace
-Tree Plantation Verification
-IoT Energy Monitoring
-Enterprise Sustainability Suite
+---
 
+## 🔥 Future Roadmap
 
-⚙️ Installation
+* AI Carbon Forecasting
+* ESG Compliance Reports
+* Voice-Based Sustainability Assistant
+* Carbon Credit Marketplace
+* Tree Plantation Verification
+* IoT Energy Monitoring
+* Enterprise Sustainability Suite
+
+---
+
+## ⚙️ Installation
+
+```bash
 git clone https://github.com/Ranjeet7680/CarbonSense-AI.git
 cd CarbonSense-AI
 npm install
 npm run dev
+```
 
+---
 
-🌐 Live Demo
+## 🌐 Live Demo
+
 Add your deployed Vercel URL here.
 
-👨‍💻 Developer
+---
+
+## 👨‍💻 Developer
+
 Ranjeet Kumar
+
 AI • Machine Learning • Sustainability • Climate Technology
+
 GitHub:
 https://github.com/Ranjeet7680
 
-📜 License
+---
+
+## 📜 License
+
 MIT License
 
-🌍 Building Technology for a Greener Future
+---
+
+### 🌍 Building Technology for a Greener Future
+
 Measure Today • Reduce Tomorrow • Sustain Forever
