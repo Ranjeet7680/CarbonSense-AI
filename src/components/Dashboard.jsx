@@ -191,6 +191,65 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
     return recs.sort((a, b) => b.saving - a.saving);
   }, [inputs]);
 
+  // 3. Rewards & Achievements System
+  const rewards = useMemo(() => {
+    const list = [
+      {
+        id: 'transit_champion',
+        title: 'Transit Champion',
+        desc: 'Choose EV, public transport, or active biking/walking.',
+        unlocked: inputs ? (inputs.transport === 'walk/bicycle' || inputs.vehicleType === 'electric' || inputs.transport === 'public') : false,
+        icon: 'directions_run',
+        color: 'bg-emerald-500'
+      },
+      {
+        id: 'green_diet',
+        title: 'Plant Power',
+        desc: 'Choose a vegetarian or vegan carbon profile.',
+        unlocked: inputs ? (inputs.diet === 'vegan' || inputs.diet === 'vegetarian') : false,
+        icon: 'local_dining',
+        color: 'bg-green-600'
+      },
+      {
+        id: 'zero_waste',
+        title: 'Recycling Pro',
+        desc: 'Implement sorted recycling practices.',
+        unlocked: inputs ? (inputs.recycling && inputs.recycling.length > 0) : false,
+        icon: 'recycling',
+        color: 'bg-teal-500'
+      },
+      {
+        id: 'smart_home',
+        title: 'Power Saver',
+        desc: 'Enable sometimes/yes for home energy efficiency.',
+        unlocked: inputs ? (inputs.energyEfficiency === 'Yes' || inputs.energyEfficiency === 'Sometimes') : false,
+        icon: 'bolt',
+        color: 'bg-amber-500'
+      },
+      {
+        id: 'clean_boiler',
+        title: 'Clean Heating',
+        desc: 'Switch fuel to electricity or natural gas.',
+        unlocked: inputs ? (inputs.heatingEnergy === 'electricity' || inputs.heatingEnergy === 'natural gas') : false,
+        icon: 'heat_pump',
+        color: 'bg-purple-600'
+      },
+      {
+        id: 'neutralizer',
+        title: 'Net-Zero Hero',
+        desc: 'Neutralize your carbon footprint with offsets.',
+        unlocked: latestScore > 0 && offsetTotal >= latestScore,
+        icon: 'workspace_premium',
+        color: 'bg-yellow-500'
+      }
+    ];
+
+    const unlockedCount = list.filter(r => r.unlocked).length;
+    const points = unlockedCount * 100;
+
+    return { list, points, unlockedCount };
+  }, [inputs, latestScore, offsetTotal]);
+
   // Baseline comparison
   const natAverage = Math.round(coefficients.mean_emission);
   const diffFromMean = netEmissions - natAverage;
@@ -366,6 +425,52 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Rewards & Achievements Section */}
+          <div className="glass-card p-lg rounded-2xl flex flex-col gap-md">
+            <div className="flex justify-between items-center flex-wrap gap-xs">
+              <div className="flex items-center gap-xs">
+                <span className="material-symbols-outlined text-amber-500 font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+                <h3 className="font-headline-md text-headline-md text-primary font-bold">Rewards & Achievements</h3>
+              </div>
+              <div className="bg-secondary-container text-on-secondary-container px-md py-xs rounded-full font-bold text-xs flex items-center gap-xs">
+                <span className="material-symbols-outlined text-sm">stars</span>
+                {rewards.points} / 600 XP
+              </div>
+            </div>
+            
+            <p className="font-body-sm text-on-surface-variant">
+              Earn carbon badges by adopting green habits and neutralizing your footprint.
+            </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-md">
+              {rewards.list.map(badge => (
+                <div 
+                  key={badge.id}
+                  className={`p-md border rounded-xl flex flex-col items-center text-center gap-xs transition-all relative overflow-hidden ${
+                    badge.unlocked 
+                      ? 'border-primary bg-secondary-container/10' 
+                      : 'border-outline-variant opacity-40 bg-surface-container-low'
+                  }`}
+                >
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white ${
+                    badge.unlocked ? badge.color : 'bg-outline-variant'
+                  }`}>
+                    <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: badge.unlocked ? "'FILL' 1" : "'FILL' 0" }}>{badge.icon}</span>
+                  </div>
+                  <div>
+                    <span className="font-body-md block font-bold text-on-surface text-[14px] leading-tight">{badge.title}</span>
+                    <span className="text-[10px] text-on-surface-variant block leading-tight mt-1">{badge.desc}</span>
+                  </div>
+                  {badge.unlocked && (
+                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary text-on-primary flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[10px] font-bold">check</span>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
 

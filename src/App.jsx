@@ -24,7 +24,9 @@ import LearningHub from './components/LearningHub';
 
 const STATIC_BENCHMARKS = [
   { id: 'b1', name: 'Alba Green (Vegan, Solar)', score: 712, isBenchmark: true },
+  { id: 'b_krish', name: 'Krish (EV, Solar)', score: 820, isBenchmark: true },
   { id: 'b2', name: 'Julian Forest (Bike, Recycler)', score: 1044, isBenchmark: true },
+  { id: 'b_rahul', name: 'Rahul (Transit, Vegetarian)', score: 1120, isBenchmark: true },
   { id: 'b3', name: 'Emma Planet (Hybrid, Electric Heat)', score: 1485, isBenchmark: true },
   { id: 'b4', name: 'Baseline Average (Nation)', score: 2269, isBenchmark: true },
   { id: 'b5', name: 'Marcus Steel (SUV, Coal Heat)', score: 4536, isBenchmark: true }
