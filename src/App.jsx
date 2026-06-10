@@ -1,18 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { ProfileAvatar, generateAIAvatarSvg, getEvolutionLevel } from './utils/avatar';
+import { calculateRewards } from './utils/rewards';
 import { 
   collection, 
   query, 
   orderBy, 
-  limit, 
   onSnapshot, 
   addDoc, 
   deleteDoc, 
   doc, 
-  setDoc,
-  getDocs 
+  setDoc
 } from 'firebase/firestore';
 
 import Auth from './components/Auth';
@@ -35,71 +34,13 @@ const STATIC_BENCHMARKS = [
   { id: 'b5', name: 'Marcus Steel (SUV, Coal Heat)', score: 4536, isBenchmark: true }
 ];
 
-export const calculateRewards = (inputs, latestScore, offsetTotal) => {
-  const list = [
-    {
-      id: 'transit_champion',
-      title: 'Transit Champion',
-      desc: 'Unlock by walking/biking, driving an electric car, or taking public transit.',
-      unlocked: inputs ? (inputs.transport === 'walk/bicycle' || inputs.vehicleType === 'electric' || inputs.transport === 'public') : false,
-      icon: 'directions_run',
-      color: 'bg-emerald-500'
-    },
-    {
-      id: 'green_diet',
-      title: 'Plant Power',
-      desc: 'Unlock by adopting a vegan or vegetarian diet.',
-      unlocked: inputs ? (inputs.diet === 'vegan' || inputs.diet === 'vegetarian') : false,
-      icon: 'local_dining',
-      color: 'bg-green-600'
-    },
-    {
-      id: 'zero_waste',
-      title: 'Recycling Pro',
-      desc: 'Unlock by implementing sorted recycling habits.',
-      unlocked: inputs ? (inputs.recycling && inputs.recycling.length > 0) : false,
-      icon: 'recycling',
-      color: 'bg-teal-500'
-    },
-    {
-      id: 'smart_home',
-      title: 'Power Saver',
-      desc: 'Unlock by enabling home energy efficiency improvements.',
-      unlocked: inputs ? (inputs.energyEfficiency === 'Yes' || inputs.energyEfficiency === 'Sometimes') : false,
-      icon: 'bolt',
-      color: 'bg-amber-500'
-    },
-    {
-      id: 'clean_boiler',
-      title: 'Clean Heating',
-      desc: 'Unlock by choosing electricity or natural gas heating.',
-      unlocked: inputs ? (inputs.heatingEnergy === 'electricity' || inputs.heatingEnergy === 'natural gas') : false,
-      icon: 'heat_pump',
-      color: 'bg-purple-600'
-    },
-    {
-      id: 'neutralizer',
-      title: 'Net-Zero Hero',
-      desc: 'Unlock by fully neutralizing your carbon footprint with offsets.',
-      unlocked: latestScore > 0 && offsetTotal >= latestScore,
-      icon: 'workspace_premium',
-      color: 'bg-yellow-500'
-    }
-  ];
-
-  const unlockedCount = list.filter(r => r.unlocked).length;
-  const points = unlockedCount * 100;
-
-  return { list, points, unlockedCount };
-};
-
 export default function App() {
   const [user, setUser] = useState(null); // null (not logged in), 'guest', or User object
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [activeView, setActiveView] = useState('dashboard');
   const [logs, setLogs] = useState([]);
   const [offsets, setOffsets] = useState([]);
-  const [leaderboard, setLeaderboard] = useState(STATIC_BENCHMARKS);
+  const [leaderboard] = useState(STATIC_BENCHMARKS);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Sandbox active profile state
@@ -139,7 +80,8 @@ export default function App() {
   // Profile switcher modal control states
   const [isProfileSwitcherOpen, setIsProfileSwitcherOpen] = useState(false);
   const [isManageMode, setIsManageMode] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isHeaderDropdownOpen, setIsHeaderDropdownOpen] = useState(false);
+  const [isSidebarDropdownOpen, setIsSidebarDropdownOpen] = useState(false);
   
   // Add Profile form states
   const [isAddingProfile, setIsAddingProfile] = useState(false);
@@ -468,9 +410,6 @@ export default function App() {
 
   // Compute dynamic leaderboard by merging static benchmarks and all dynamic profiles
   const dynamicLeaderboard = useMemo(() => {
-    const krishLatestScore = krishLogs.length > 0 ? krishLogs[0].score : 820;
-    const rahulLatestScore = rahulLogs.length > 0 ? rahulLogs[0].score : 1120;
-
     // Filter out benchmarks that match preset ids so we don't duplicate
     const benchmarkUsers = leaderboard.filter(item => 
       item.id !== 'b_krish' && 
@@ -480,17 +419,15 @@ export default function App() {
     );
 
     const profileEntries = profiles.map(profile => {
+      const logList =
+        profile.id === 'me'
+          ? logs
+          : profile.id === 'krish'
+            ? krishLogs
+            : profile.id === 'rahul'
+              ? rahulLogs
+              : customLogs[profile.id] || [];
       let score = 1580; // default benchmark if no logs
-      let logList = [];
-      if (profile.id === 'me') {
-        logList = logs;
-      } else if (profile.id === 'krish') {
-        logList = krishLogs;
-      } else if (profile.id === 'rahul') {
-        logList = rahulLogs;
-      } else {
-        logList = customLogs[profile.id] || [];
-      }
       
       if (logList.length > 0) {
         score = logList[0].score;
@@ -517,7 +454,7 @@ export default function App() {
     if (localLogs.length > 0) {
       for (const log of localLogs) {
         try {
-          const { id, ...logData } = log;
+          const logData = Object.fromEntries(Object.entries(log).filter(([key]) => key !== 'id'));
           await addDoc(collection(db, 'users', uid, 'logs'), logData);
         } catch (e) {
           console.error(e);
@@ -531,7 +468,7 @@ export default function App() {
     if (localOffsets.length > 0) {
       for (const offset of localOffsets) {
         try {
-          const { id, ...offsetData } = offset;
+          const offsetData = Object.fromEntries(Object.entries(offset).filter(([key]) => key !== 'id'));
           await addDoc(collection(db, 'users', uid, 'offsets'), offsetData);
         } catch (e) {
           console.error(e);
@@ -686,7 +623,7 @@ export default function App() {
     }
   };
 
-  const renderProfileDropdown = (positionClasses = "right-0 top-12") => {
+  const renderProfileDropdown = (positionClasses = "right-0 top-12", setOpen = () => {}) => {
     const points = activeRewards.points;
     const evolution = getEvolutionLevel(points);
     return (
@@ -711,7 +648,7 @@ export default function App() {
           <button 
             onClick={() => {
               setActiveView('rewards');
-              setIsDropdownOpen(false);
+              setOpen(false);
             }}
             className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg transition-colors text-left"
           >
@@ -721,7 +658,7 @@ export default function App() {
           <button 
             onClick={() => {
               setActiveView('dashboard');
-              setIsDropdownOpen(false);
+              setOpen(false);
             }}
             className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg transition-colors text-left"
           >
@@ -731,7 +668,7 @@ export default function App() {
           <button 
             onClick={() => {
               setActiveView('rewards');
-              setIsDropdownOpen(false);
+              setOpen(false);
             }}
             className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg transition-colors text-left"
           >
@@ -741,7 +678,7 @@ export default function App() {
           <button 
             onClick={() => {
               setActiveView('rewards');
-              setIsDropdownOpen(false);
+              setOpen(false);
             }}
             className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg transition-colors text-left"
           >
@@ -755,7 +692,7 @@ export default function App() {
           <button 
             onClick={() => {
               setIsProfileSwitcherOpen(true);
-              setIsDropdownOpen(false);
+              setOpen(false);
             }}
             className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg text-secondary transition-colors text-left font-bold"
           >
@@ -766,7 +703,7 @@ export default function App() {
             onClick={() => {
               setIsProfileSwitcherOpen(true);
               setIsAddingProfile(true);
-              setIsDropdownOpen(false);
+              setOpen(false);
             }}
             className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg text-emerald-600 transition-colors text-left font-bold"
           >
@@ -776,7 +713,7 @@ export default function App() {
           <button 
             onClick={() => {
               handleSignOut();
-              setIsDropdownOpen(false);
+              setOpen(false);
             }}
             className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg text-error transition-colors text-left font-bold"
           >
@@ -1117,7 +1054,6 @@ export default function App() {
   // Determine latest calculation log
   const currentLog = activeCurrentLog;
   const logsToRender = activeLogs;
-  const offsetsToRender = activeOffsets;
   const offsetTotalToRender = activeOffsetTotal;
   const leaderboardToRender = dynamicLeaderboard;
   const rewardsToRender = activeRewards;
@@ -1182,9 +1118,14 @@ export default function App() {
         </nav>
 
         <div className="mt-auto border-t border-outline-variant pt-md flex flex-col gap-md">
-          <div 
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center justify-between gap-sm px-md py-sm rounded-xl hover:bg-surface-container-high transition-all cursor-pointer relative"
+          <button 
+            type="button"
+            onClick={() => {
+              setIsSidebarDropdownOpen(!isSidebarDropdownOpen);
+              setIsHeaderDropdownOpen(false);
+            }}
+            aria-label="Open profile menu"
+            className="flex items-center justify-between gap-sm px-md py-sm rounded-xl hover:bg-surface-container-high transition-all cursor-pointer relative text-left"
           >
             <div className="flex items-center gap-md min-w-0">
               <ProfileAvatar avatar={currentProfileObj.avatar} className="w-10 h-10" />
@@ -1198,9 +1139,8 @@ export default function App() {
               </div>
             </div>
             <span className="material-symbols-outlined text-outline">more_vert</span>
-            
-            {isDropdownOpen && renderProfileDropdown('left-0 bottom-14')}
-          </div>
+          </button>
+          {isSidebarDropdownOpen && renderProfileDropdown('left-0 bottom-14', setIsSidebarDropdownOpen)}
         </div>
       </aside>
 
@@ -1221,18 +1161,23 @@ export default function App() {
             <span>Switch</span>
           </button>
           <button 
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)} 
+            onClick={() => {
+              setIsHeaderDropdownOpen(!isHeaderDropdownOpen);
+              setIsSidebarDropdownOpen(false);
+            }} 
+            aria-label="Open profile menu"
             className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed relative flex items-center justify-center bg-white/10 cursor-pointer shadow-sm"
           >
             <ProfileAvatar avatar={currentProfileObj.avatar} className="w-full h-full" />
           </button>
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             className="text-on-surface cursor-pointer p-xs hover:bg-surface-container-high rounded-full"
           >
             <span className="material-symbols-outlined text-[28px]">{isMobileMenuOpen ? 'close' : 'menu'}</span>
           </button>
-          {isDropdownOpen && renderProfileDropdown('right-0 top-12')}
+          {isHeaderDropdownOpen && renderProfileDropdown('right-0 top-12', setIsHeaderDropdownOpen)}
         </div>
       </header>
 
@@ -1267,7 +1212,11 @@ export default function App() {
           
           <div className="border-t border-outline-variant pt-md flex flex-col gap-md">
             <div 
-              onClick={() => { setIsMobileMenuOpen(false); setIsDropdownOpen(true); }}
+              onClick={() => { 
+                setIsMobileMenuOpen(false); 
+                setIsHeaderDropdownOpen(true); 
+                setIsSidebarDropdownOpen(false);
+              }}
               className="flex items-center gap-md cursor-pointer"
             >
               <ProfileAvatar avatar={currentProfileObj.avatar} className="w-10 h-10" />
@@ -1322,6 +1271,12 @@ export default function App() {
         .theme-cyber-green .bg-surface-container-high {
           background-color: #122c16 !important;
         }
+        .theme-cyber-green .bg-surface-container-highest {
+          background-color: #122c16 !important;
+        }
+        .theme-cyber-green .hover\:bg-surface-container-high:hover {
+          background-color: #1a3e20 !important;
+        }
         .theme-cyber-green .bg-surface-container-lowest {
           background-color: #040e05 !important;
         }
@@ -1373,6 +1328,12 @@ export default function App() {
         }
         .theme-gold .bg-surface-container-high {
           background-color: #352c1e !important;
+        }
+        .theme-gold .bg-surface-container-highest {
+          background-color: #352c1e !important;
+        }
+        .theme-gold .hover\:bg-surface-container-high:hover {
+          background-color: #483c29 !important;
         }
         .theme-gold .bg-surface-container-lowest {
           background-color: #100c08 !important;
@@ -1426,6 +1387,12 @@ export default function App() {
         .theme-dark-neon .bg-surface-container-high {
           background-color: #1e293b !important;
         }
+        .theme-dark-neon .bg-surface-container-highest {
+          background-color: #1e293b !important;
+        }
+        .theme-dark-neon .hover\:bg-surface-container-high:hover {
+          background-color: #334155 !important;
+        }
         .theme-dark-neon .bg-surface-container-lowest {
           background-color: #030710 !important;
         }
@@ -1458,6 +1425,7 @@ export default function App() {
           <div className="flex items-center gap-md relative">
             <button 
               onClick={() => alert(`Stars Achievement Level: Level ${activeRewards.unlockedCount} ${activeRewards.unlockedCount >= 5 ? 'Eco Champion' : 'Eco Explorer'}`)} 
+              aria-label="Show achievement level"
               className="material-symbols-outlined text-primary hover:bg-surface-container-low transition-colors p-2 rounded-full active:scale-95 duration-100"
             >
               stars
@@ -1465,7 +1433,10 @@ export default function App() {
 
             {/* Profile Dropdown Trigger */}
             <button 
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              onClick={() => {
+                setIsHeaderDropdownOpen(!isHeaderDropdownOpen);
+                setIsSidebarDropdownOpen(false);
+              }}
               className="flex items-center gap-sm bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 rounded-full pl-xs pr-md py-xs shadow-sm transition-all"
             >
               <div className="w-8 h-8 rounded-full overflow-hidden border border-primary-fixed relative flex items-center justify-center bg-white/10 shadow-sm">
@@ -1478,7 +1449,7 @@ export default function App() {
             </button>
             
             {/* Desktop Profile Dropdown Menu */}
-            {isDropdownOpen && renderProfileDropdown('right-0 top-12')}
+            {isHeaderDropdownOpen && renderProfileDropdown('right-0 top-12', setIsHeaderDropdownOpen)}
           </div>
         </header>
 

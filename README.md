@@ -1,245 +1,202 @@
-# 🌍 CarbonSense AI – Intelligent Sustainability & ESG Platform
+# CarbonSense AI
 
-![CarbonSense AI Banner](https://img.shields.io/badge/ClimateTech-AI%20Powered-green)
-![React](https://img.shields.io/badge/React-18-blue)
-![Firebase](https://img.shields.io/badge/Firebase-Backend-orange)
-![Machine Learning](https://img.shields.io/badge/ML-OLS%20Regression-purple)
+CarbonSense AI is an intelligent sustainability and ESG platform for measuring, analyzing, and reducing carbon footprints. It combines a React/Vite app, Firebase-backed user data, OLS-based carbon scoring, gamified rewards, dataset analytics, and an AI sustainability coach.
 
-## 🚀 Overview
+Vision: Measure today. Reduce tomorrow. Sustain forever.
 
-CarbonSense AI is an AI-powered sustainability platform that helps individuals and organizations measure, analyze, and reduce their carbon footprint through predictive analytics, ESG reporting, gamification, and personalized sustainability coaching.
+## Repository
 
-Built using React, Firebase, Machine Learning, and environmental datasets, the platform transforms complex carbon data into actionable sustainability insights.
+GitHub: [Ranjeet7680/CarbonSense-AI](https://github.com/Ranjeet7680/CarbonSense-AI.git)
 
-### 🎯 Vision
+## Features
 
-**Measure Today. Reduce Tomorrow. Sustain Forever.**
+- Carbon footprint calculator with quick estimate and precise analysis modes
+- OLS regression scoring using local coefficient data
+- Dashboard for gross footprint, offsets, net footprint, climate rating, and category charts
+- AI Sustainability Coach with profile-aware suggestions
+- Multi-profile sandbox system with simulated users and custom profiles
+- Rewards, badges, XP levels, and leaderboard comparisons
+- Dataset analytics with emission distributions and lifestyle factor comparisons
+- Learning hub for climate and sustainability education
+- Offset tracking for reforestation, solar, wind, and clean energy projects
+- Firebase Auth and Firestore support for authenticated logs and leaderboard data
 
----
+## Tech Stack
 
-## ✨ Key Features
+- React 19
+- Vite 8
+- Firebase Auth and Firestore
+- Chart.js and react-chartjs-2
+- Material Symbols icons
+- Vitest
+- ESLint
 
-### 🌱 Carbon Footprint Calculator
-
-* Quick Estimate Mode
-* Advanced OLS Analysis Mode
-* Real-time CO₂ calculations
-* Smart recommendations
-
-### 🤖 AI Sustainability Coach
-
-* Personalized sustainability guidance
-* Dynamic profile-aware responses
-* Goal tracking assistance
-* Eco-friendly lifestyle suggestions
-
-### 📊 Analytics Dashboard
-
-* Emission trend analysis
-* Category breakdown charts
-* Carbon score monitoring
-* Monthly progress tracking
-
-### 🏆 Gamification System
-
-* XP and Levels
-* Sustainability Badges
-* Community Rankings
-* Achievement Tracking
-
-### 👥 Multi-Profile System
-
-* User profile switcher
-* Sandbox demonstration profiles
-* Custom avatars
-* Personalized carbon budgets
-
-### 🌍 Community Hub
-
-* Sustainability challenges
-* Leaderboards
-* Community Spotlight
-* LinkedIn Demo Showcase
-
-### 📈 ESG & Enterprise Tools
-
-* ESG Reporting Dashboard
-* Sustainability Monitoring
-* Carbon Reduction Planning
-* Organizational Analytics
-
----
-
-## 🧠 Machine Learning Engine
-
-CarbonSense AI uses Ordinary Least Squares (OLS) regression trained on 10,000+ sustainability records.
-
-### Model Inputs
-
-* Transportation
-* Vehicle Type
-* Travel Distance
-* Diet Pattern
-* Energy Consumption
-* Heating Source
-* Waste Generation
-* Recycling Habits
-* Clothing Purchases
-* Internet Usage
-
-### Output
-
-* Monthly Carbon Footprint (kg CO₂)
-* Sustainability Score
-* Reduction Recommendations
-
----
-
-## 🏅 Sustainability Levels
-
-| Level   | Title                   |
-| ------- | ----------------------- |
-| Level 1 | Green Starter           |
-| Level 2 | Eco Learner             |
-| Level 3 | Sustainability Advocate |
-| Level 4 | Eco Warrior             |
-| Level 5 | Climate Champion        |
-| Level 6 | Net-Zero Hero           |
-
----
-
-## 📂 Project Structure
+## Project Structure
 
 ```text
-src/
-├── components/
-│   ├── Auth.jsx
-│   ├── Calculator.jsx
-│   ├── Dashboard.jsx
-│   ├── AICoach.jsx
-│   ├── DatasetAnalysis.jsx
-│   ├── LeaderboardRewards.jsx
-│   ├── LearningHub.jsx
-│   └── Offsets.jsx
-│
-├── firebase.js
-├── coefficients.json
-├── dataset_summary.json
-├── main.jsx
-└── App.jsx
+CarbonSense AI Tracker/
+├── Carbon Emission.csv/
+│   ├── Carbon Emission.csv
+│   └── model_coefficients.json
+├── public/
+│   ├── favicon.svg
+│   └── icons.svg
+├── src/
+│   ├── assets/
+│   ├── components/
+│   │   ├── AICoach.jsx
+│   │   ├── Auth.jsx
+│   │   ├── Calculator.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── DatasetAnalysis.jsx
+│   │   ├── History.jsx
+│   │   ├── LeaderboardRewards.jsx
+│   │   ├── LearningHub.jsx
+│   │   └── Offsets.jsx
+│   ├── utils/
+│   │   ├── avatar.jsx
+│   │   ├── avatar.test.jsx
+│   │   └── rewards.js
+│   ├── coefficients.json
+│   ├── dataset_summary.json
+│   ├── firebase.js
+│   ├── main.jsx
+│   └── App.jsx
+├── eslint.config.js
+├── package.json
+├── vite.config.js
+└── README.md
 ```
 
----
+## Getting Started
 
-## 🛠 Technology Stack
+### Prerequisites
 
-### Frontend
+- Node.js 18 or newer
+- npm 9 or newer
 
-* React 18
-* Vite
-* Tailwind CSS
-* Material Design 3
-
-### Backend
-
-* Firebase Firestore
-* Firebase Authentication
-
-### Data & Analytics
-
-* Python
-* OLS Regression
-* Carbon Emission Dataset
-* Chart.js
-
-### Deployment
-
-* Vercel
-* Firebase Hosting
-
----
-
-## 📊 Core Modules
-
-### User Dashboard
-
-* Carbon Score
-* Monthly Trends
-* Sustainability Insights
-
-### Carbon Calculator
-
-* Transportation Analysis
-* Energy Analysis
-* Food Impact Assessment
-* Waste Analysis
-
-### Dataset Analytics
-
-* Correlation Matrix
-* Emission Histograms
-* Lifestyle Comparisons
-
-### Community
-
-* Leaderboards
-* Challenges
-* Rewards
-
-### Learning Hub
-
-* Sustainability Courses
-* Climate Articles
-* Educational Resources
-
----
-
-## 🔥 Future Roadmap
-
-* AI Carbon Forecasting
-* ESG Compliance Reports
-* Voice-Based Sustainability Assistant
-* Carbon Credit Marketplace
-* Tree Plantation Verification
-* IoT Energy Monitoring
-* Enterprise Sustainability Suite
-
----
-
-## ⚙️ Installation
+### Install
 
 ```bash
-git clone https://github.com/Ranjeet7680/CarbonSense-AI.git
-cd CarbonSense-AI
 npm install
+```
+
+### Run Locally
+
+```bash
 npm run dev
 ```
 
----
+Open the local Vite URL shown in your terminal, usually:
 
-## 🌐 Live Demo
+```text
+http://localhost:5173
+```
 
-Add your deployed Vercel URL here.
+### Build
 
----
+```bash
+npm run build
+```
 
-## 👨‍💻 Developer
+### Test
+
+```bash
+npm test
+```
+
+### Lint
+
+```bash
+npm run lint
+```
+
+## Firebase Setup
+
+Create a `.env` file in the project root if you want to connect your own Firebase project:
+
+```env
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
+
+Firestore collections used by the app:
+
+```text
+/users/{uid}/logs/{logId}
+  timestamp: number
+  score: number
+  inputs: object
+
+/users/{uid}/offsets/{offsetId}
+  timestamp: number
+  type: string
+  amountKg: number
+  provider: string
+  cost: number
+
+/leaderboard/{uid}
+  userId: string
+  name: string
+  score: number
+  timestamp: number
+```
+
+## Carbon Scoring Model
+
+The footprint estimate is based on local OLS coefficient data in [src/coefficients.json](src/coefficients.json).
+
+```text
+Footprint = Intercept + sum(input_value * coefficient)
+```
+
+Key drivers include transportation, vehicle type, travel distance, diet, heating source, energy efficiency, waste generation, recycling, clothing purchases, groceries, internet usage, and screen time.
+
+## Sustainability Levels
+
+| Level | Title |
+| :--- | :--- |
+| Level 1 | Green Starter |
+| Level 2 | Eco Learner |
+| Level 3 | Sustainability Advocate |
+| Level 4 | Eco Warrior |
+| Level 5 | Climate Champion |
+| Level 6 | Net-Zero Hero |
+
+## Quality Checks
+
+Current verification commands:
+
+```bash
+npm run lint
+npm test
+npm run build
+```
+
+The app includes focused tests for avatar generation, evolution levels, reward calculation, and SVG sanitization.
+
+## Deployment
+
+Any static hosting service that supports Vite builds can serve the app:
+
+```bash
+npm run build
+```
+
+Deploy the generated `dist/` directory.
+
+## Developer
 
 Ranjeet Kumar
 
-AI • Machine Learning • Sustainability • Climate Technology
+AI, machine learning, sustainability, and climate technology.
 
-GitHub:
-https://github.com/Ranjeet7680
+GitHub: [Ranjeet7680](https://github.com/Ranjeet7680)
 
----
-
-## 📜 License
+## License
 
 MIT License
-
----
-
-### 🌍 Building Technology for a Greener Future
-
-Measure Today • Reduce Tomorrow • Sustain Forever

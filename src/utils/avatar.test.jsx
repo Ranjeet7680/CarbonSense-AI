@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { generateAIAvatarSvg, getEvolutionLevel } from './avatar';
-import { calculateRewards } from '../App';
+import { generateAIAvatarSvg, getEvolutionLevel, sanitizeSvg } from './avatar';
+import { calculateRewards } from './rewards';
 
 describe('Avatar & Evolution Utils', () => {
   it('should generate valid SVG strings for different personas and styles', () => {
@@ -49,5 +49,21 @@ describe('Avatar & Evolution Utils', () => {
     expect(result.points).toBe(result.unlockedCount * 100);
     expect(result.list.find(r => r.id === 'transit_champion').unlocked).toBe(true);
     expect(result.list.find(r => r.id === 'green_diet').unlocked).toBe(true);
+  });
+
+  it('should keep unsafe markup out of rendered avatar SVG', () => {
+    const dirtySvg = '<svg onload="alert(1)"><script>alert(1)</script><a href="javascript:alert(1)"><circle /></a><iframe src="bad"></iframe></svg>';
+    const cleanSvg = sanitizeSvg(dirtySvg);
+
+    expect(cleanSvg).toContain('<svg');
+    expect(cleanSvg).not.toMatch(/<script/i);
+    expect(cleanSvg).not.toMatch(/onload/i);
+    expect(cleanSvg).not.toMatch(/javascript:/i);
+    expect(cleanSvg).not.toMatch(/<iframe/i);
+  });
+
+  it('should reject non-SVG avatar markup', () => {
+    expect(sanitizeSvg('<img src=x onerror=alert(1)>')).toBe('');
+    expect(sanitizeSvg('plain text')).toBe('');
   });
 });

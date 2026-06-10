@@ -1,5 +1,3 @@
-import React from 'react';
-
 // Evolution details helper
 export function getEvolutionLevel(points) {
   if (points >= 1000) {
@@ -93,20 +91,15 @@ export function generateAIAvatarSvg(seed, persona = 'explorer', style = 'cosmic'
 
   // Animation configuration
   const animIndex = Math.abs(hash) % 4;
-  let animName = 'float';
-  let animCss = '';
+  let animCss;
 
   if (animIndex === 0) {
-    animName = 'pulse-glow';
     animCss = `@keyframes pulse-glow { 0%, 100% { opacity: 0.6; filter: drop-shadow(0 0 2px rgba(255,255,255,0.4)); } 50% { opacity: 1; filter: drop-shadow(0 0 10px rgba(255,255,255,0.8)); } } .anim-element { animation: pulse-glow 3s infinite ease-in-out; }`;
   } else if (animIndex === 1) {
-    animName = 'float';
     animCss = `@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } } .anim-element { animation: float 4s infinite ease-in-out; transform-origin: center; }`;
   } else if (animIndex === 2) {
-    animName = 'spin-slow';
     animCss = `@keyframes spin-slow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } .anim-element-spin { animation: spin-slow 16s infinite linear; transform-origin: 50px 50px; }`;
   } else {
-    animName = 'drift-particles';
     animCss = `@keyframes drift { 0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; } 50% { transform: translate(2px, -3px) scale(1.2); opacity: 0.8; } } .anim-particle { animation: drift 5s infinite ease-in-out; }`;
   }
 

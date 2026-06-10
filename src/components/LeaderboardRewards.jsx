@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { ProfileAvatar, generateAIAvatarSvg } from '../utils/avatar';
 
 // Static definitions of other users on the leaderboard to show details
@@ -122,7 +122,6 @@ export default function LeaderboardRewards({
   leaderboard, 
   rewards, 
   currentLog, 
-  offsetTotal = 0,
   profileName,
   setProfileName,
   profileAvatar,
@@ -226,8 +225,8 @@ export default function LeaderboardRewards({
     const matchedProfile = dynamicProfilesList?.find(p => p.id === userRow.id);
     if (matchedProfile) {
       let pLog = null;
-      let pXP = 300;
-      let pBadges = ['transit_champion'];
+      let pXP;
+      let pBadges;
       
       if (userRow.id === 'me') {
         pLog = currentLog;
@@ -486,6 +485,7 @@ export default function LeaderboardRewards({
               </div>
               <button 
                 onClick={() => setSelectedUser(null)}
+                aria-label="Close user details"
                 className="p-1 hover:bg-surface-container rounded-full text-on-surface-variant transition-colors"
               >
                 <span className="material-symbols-outlined">close</span>
@@ -721,6 +721,7 @@ export default function LeaderboardRewards({
               <h3 className="font-headline-md text-headline-md font-bold text-primary">{selectedBadge.title} Badge</h3>
               <button 
                 onClick={() => setSelectedBadge(null)}
+                aria-label="Close badge details"
                 className="p-1 hover:bg-surface-container rounded-full text-on-surface-variant transition-colors"
               >
                 <span className="material-symbols-outlined">close</span>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import coefficients from '../coefficients.json';
 
 const DEFAULT_INPUTS = {
@@ -133,9 +133,6 @@ export default function Calculator({ onSave, initialData }) {
         mappedInputs.recycling = [];
         mappedInputs.wasteBagCount = 4;
       }
-
-      // Special addition calculation adjustment to capture kWh variation
-      const electricityOffset = Math.round((quickElectricity - 250) * 0.4);
 
       setInputs(mappedInputs);
     }

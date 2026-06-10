@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import datasetSummary from '../dataset_summary.json';
 import { Bar } from 'react-chartjs-2';
 import {

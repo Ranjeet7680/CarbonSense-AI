@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { ProfileAvatar } from '../utils/avatar';
 import coefficients from '../coefficients.json';
 import { Doughnut } from 'react-chartjs-2';
@@ -216,9 +216,6 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
 
   // Baseline comparison
   const natAverage = Math.round(coefficients.mean_emission);
-  const diffFromMean = netEmissions - natAverage;
-  const pctDiff = Math.abs(Math.round((diffFromMean / natAverage) * 100));
-
   const strokeDashoffset = useMemo(() => {
     const radius = 90;
     const circumference = 2 * Math.PI * radius;

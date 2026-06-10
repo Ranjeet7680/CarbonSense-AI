@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import coefficients from '../coefficients.json';
 
 export default function AICoach({ currentLog, profileName = "Eco Warrior" }) {
@@ -69,7 +69,7 @@ export default function AICoach({ currentLog, profileName = "Eco Warrior" }) {
 
   const generateResponse = (inputText) => {
     const text = inputText.toLowerCase();
-    let replyText = "";
+    let replyText;
 
     if (text.includes('recycle') || text.includes('waste')) {
       replyText = "Sorting waste is one of the easiest ways to optimize your footprint. Based on OLS weights, active paper recycling saves -148 kg/mo, metal recycling saves -129 kg/mo, glass saves -91 kg/mo, and plastic saves -64 kg/mo. Start small by setting up separate sorting bins!";
@@ -195,6 +195,7 @@ export default function AICoach({ currentLog, profileName = "Eco Warrior" }) {
           />
           <button 
             type="submit"
+            aria-label="Send message"
             className="w-10 h-10 flex items-center justify-center bg-primary text-on-primary rounded-full hover:shadow-lg transition-transform active:scale-90 flex-shrink-0"
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>send</span>

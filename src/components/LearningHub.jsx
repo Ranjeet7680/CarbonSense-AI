@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
 const ARTICLES = [
   {
@@ -247,6 +247,7 @@ export default function LearningHub({ onNavigate }) {
               />
               <button
                 onClick={() => setActiveArticle(null)}
+                aria-label="Close article"
                 className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all cursor-pointer"
               >
                 <span className="material-symbols-outlined">close</span>
