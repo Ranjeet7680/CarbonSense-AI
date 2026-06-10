@@ -1303,6 +1303,12 @@ export default function App() {
           background-color: #061208 !important;
           color: #a3ffd1 !important;
         }
+        .theme-cyber-green .text-on-surface {
+          color: #a3ffd1 !important;
+        }
+        .theme-cyber-green .text-on-surface-variant {
+          color: #72a38a !important;
+        }
         .theme-cyber-green aside {
           background-color: #0c1f0f !important;
           border-right: 1px solid #143e1d !important;
@@ -1349,6 +1355,12 @@ export default function App() {
           background-color: #15110c !important;
           color: #fcecd7 !important;
         }
+        .theme-gold .text-on-surface {
+          color: #fcecd7 !important;
+        }
+        .theme-gold .text-on-surface-variant {
+          color: #bfa88c !important;
+        }
         .theme-gold aside {
           background-color: #261f15 !important;
           border-right: 1px solid #453825 !important;
@@ -1394,6 +1406,12 @@ export default function App() {
         .theme-dark-neon.flex {
           background-color: #070b13 !important;
           color: #e2e8f0 !important;
+        }
+        .theme-dark-neon .text-on-surface {
+          color: #e2e8f0 !important;
+        }
+        .theme-dark-neon .text-on-surface-variant {
+          color: #94a3b8 !important;
         }
         .theme-dark-neon aside {
           background-color: #0f172a !important;
