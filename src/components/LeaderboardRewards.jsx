@@ -381,7 +381,7 @@ export default function LeaderboardRewards({
                           )}
                         </span>
                         <span className="text-[10px] text-on-surface-variant font-normal">
-                          {user.id === 'b1' || user.id === 'b2' || user.id === 'b3' || user.id === 'b4' || user.id === 'b5' || user.id === 'krish' || user.id === 'rahul' ? 'Benchmark Profile' : 'Local Sandbox User'}
+                          {user.id.startsWith('b') ? 'Benchmark Profile' : 'Local Sandbox User'}
                         </span>
                       </div>
                     </div>
