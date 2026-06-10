@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { ProfileAvatar, generateAIAvatarSvg, getEvolutionLevel } from './utils/avatar';
 import { 
   collection, 
   query, 
@@ -102,18 +103,195 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Sandbox active profile state
-  const [activeProfile, setActiveProfile] = useState('me'); // 'me', 'krish', 'rahul'
+  const [activeProfile, setActiveProfile] = useState('me'); // 'me', 'krish', 'rahul' or custom profile ID
+
+  // Dynamic profiles list state (JioCinema / Hotstar style)
+  const [profiles, setProfiles] = useState(() => {
+    const saved = localStorage.getItem('carbonsense_profiles');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    // Default preset profiles
+    return [
+      { id: 'me', name: 'Ranjeet', avatar: generateAIAvatarSvg('Ranjeet', 'warrior', 'minimalist', 'gradient-forest', 0), bg: 'gradient-forest', persona: 'warrior', style: 'minimalist', goal: 1500, type: 'me', theme: 'classic' },
+      { id: 'krish', name: 'Krish', avatar: generateAIAvatarSvg('Krish', 'champion', 'futuristic', 'gradient-sunset', 500), bg: 'gradient-sunset', persona: 'champion', style: 'futuristic', goal: 1200, type: 'preset', theme: 'cyber-green' },
+      { id: 'rahul', name: 'Rahul', avatar: generateAIAvatarSvg('Rahul', 'guardian', 'professional', 'gradient-ocean', 400), bg: 'gradient-ocean', persona: 'guardian', style: 'professional', goal: 1400, type: 'preset', theme: 'classic' }
+    ];
+  });
 
   // Custom user profile states
-  const [profileName, setProfileName] = useState(localStorage.getItem('carbon_profile_name') || 'Eco Warrior');
-  const [profileAvatar, setProfileAvatar] = useState(localStorage.getItem('carbon_profile_avatar') || '🌳');
-  const [profileGoal, setProfileGoal] = useState(parseInt(localStorage.getItem('carbon_profile_goal') || '1500'));
+  const [profileName, setProfileName] = useState(profiles.find(p => p.id === 'me')?.name || 'Ranjeet');
+  const [profileAvatar, setProfileAvatar] = useState(profiles.find(p => p.id === 'me')?.avatar || '🌳');
+  const [profileGoal, setProfileGoal] = useState(profiles.find(p => p.id === 'me')?.goal || 1500);
 
+  // Custom profile logs & offsets database
+  const [customLogs, setCustomLogs] = useState(() => {
+    return JSON.parse(localStorage.getItem('carbonsense_custom_logs') || '{}');
+  });
+  const [customOffsets, setCustomOffsets] = useState(() => {
+    return JSON.parse(localStorage.getItem('carbonsense_custom_offsets') || '{}');
+  });
+
+  // Profile switcher modal control states
+  const [isProfileSwitcherOpen, setIsProfileSwitcherOpen] = useState(false);
+  const [isManageMode, setIsManageMode] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  // Add Profile form states
+  const [isAddingProfile, setIsAddingProfile] = useState(false);
+  const [addName, setAddName] = useState('');
+  const [addGoal, setAddGoal] = useState(1500);
+  const [addPersona, setAddPersona] = useState('explorer');
+  const [addStyle, setAddStyle] = useState('cosmic');
+  const [addBg, setAddBg] = useState('gradient-cosmic');
+  const [addTheme, setAddTheme] = useState('classic');
+  const [addAvatarPreview, setAddAvatarPreview] = useState(generateAIAvatarSvg('', 'explorer', 'cosmic'));
+
+  // Edit Profile modal states
+  const [editingProfileObj, setEditingProfileObj] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editGoal, setEditGoal] = useState(1500);
+  const [editPersona, setEditPersona] = useState('explorer');
+  const [editStyle, setEditStyle] = useState('cosmic');
+  const [editBg, setEditBg] = useState('gradient-cosmic');
+  const [editTheme, setEditTheme] = useState('classic');
+  const [editAvatarPreview, setEditAvatarPreview] = useState('');
+
+  // Sync profile configs to localStorage
   useEffect(() => {
-    localStorage.setItem('carbon_profile_name', profileName);
-    localStorage.setItem('carbon_profile_avatar', profileAvatar);
-    localStorage.setItem('carbon_profile_goal', profileGoal.toString());
-  }, [profileName, profileAvatar, profileGoal]);
+    localStorage.setItem('carbonsense_profiles', JSON.stringify(profiles));
+    localStorage.setItem('carbonsense_custom_logs', JSON.stringify(customLogs));
+    localStorage.setItem('carbonsense_custom_offsets', JSON.stringify(customOffsets));
+  }, [profiles, customLogs, customOffsets]);
+
+  // Handle dynamic styling classes for Premium Profile Themes
+  const currentProfileObj = profiles.find(p => p.id === activeProfile) || profiles[0];
+  const activeTheme = currentProfileObj?.theme || 'classic';
+
+  // Profile management operations
+  const updateProfileDetails = (id, newName, newAvatar, newGoal, newPersona, newStyle, newBg, newTheme) => {
+    setProfiles(prev => prev.map(p => {
+      if (p.id === id) {
+        return { 
+          ...p, 
+          name: newName, 
+          avatar: newAvatar, 
+          goal: newGoal,
+          persona: newPersona || p.persona,
+          style: newStyle || p.style,
+          bg: newBg || p.bg,
+          theme: newTheme || p.theme
+        };
+      }
+      return p;
+    }));
+    
+    if (id === 'me') {
+      setProfileName(newName);
+      setProfileAvatar(newAvatar);
+      setProfileGoal(newGoal);
+      localStorage.setItem('carbon_profile_name', newName);
+      localStorage.setItem('carbon_profile_avatar', newAvatar);
+      localStorage.setItem('carbon_profile_goal', newGoal.toString());
+    }
+  };
+
+  const handleCreateProfile = () => {
+    if (!addName.trim()) return;
+    const newId = 'custom_' + Date.now();
+    const finalAvatar = addAvatarPreview || generateAIAvatarSvg(addName.trim(), addPersona, addStyle, addBg);
+    const newProfile = {
+      id: newId,
+      name: addName.trim(),
+      avatar: finalAvatar,
+      bg: addBg,
+      persona: addPersona,
+      style: addStyle,
+      goal: addGoal,
+      theme: addTheme,
+      type: 'custom'
+    };
+    
+    setProfiles(prev => [...prev, newProfile]);
+    
+    // Seed standard lifestyle logs for this new profile so they have calculation averages immediately
+    setCustomLogs(prev => ({
+      ...prev,
+      [newId]: [{
+        id: 'c_log_init_' + Date.now(),
+        timestamp: Date.now(),
+        score: 1850,
+        inputs: {
+          vehicleDistance: 800,
+          transport: 'public',
+          vehicleType: 'None',
+          airTravel: 'rarely',
+          diet: 'omnivore',
+          heatingEnergy: 'natural gas',
+          energyEfficiency: 'Sometimes',
+          recycling: ['Paper'],
+          groceryBill: 160,
+          wasteBagCount: 2,
+          tvPcHours: 4,
+          newClothes: 2,
+          internetHours: 5,
+          bodyType: 'normal',
+          sex: 'male',
+          showerFrequency: 'daily',
+          socialActivity: 'sometimes',
+          cooking: ['Stove']
+        }
+      }]
+    }));
+
+    setIsAddingProfile(false);
+    setAddName('');
+    setAddGoal(1500);
+  };
+
+  const handleProfileSelect = (profile) => {
+    if (isManageMode) {
+      setEditingProfileObj(profile);
+      setEditName(profile.name);
+      setEditGoal(profile.goal || 1500);
+      setEditPersona(profile.persona || 'explorer');
+      setEditStyle(profile.style || 'cosmic');
+      setEditBg(profile.bg || 'gradient-cosmic');
+      setEditTheme(profile.theme || 'classic');
+      setEditAvatarPreview(profile.avatar);
+    } else {
+      setActiveProfile(profile.id);
+      setIsProfileSwitcherOpen(false);
+    }
+  };
+
+  const handleSaveProfileFromSwitcher = () => {
+    if (!editName.trim()) return;
+    updateProfileDetails(
+      editingProfileObj.id,
+      editName.trim(),
+      editAvatarPreview,
+      editGoal,
+      editPersona,
+      editStyle,
+      editBg,
+      editTheme
+    );
+    setEditingProfileObj(null);
+  };
+
+  const handleDeleteProfile = () => {
+    if (!editingProfileObj) return;
+    setProfiles(prev => prev.filter(p => p.id !== editingProfileObj.id));
+    if (activeProfile === editingProfileObj.id) {
+      setActiveProfile('me');
+    }
+    setEditingProfileObj(null);
+  };
 
   // In-memory states for mock profiles so they are fully reactive and editable!
   const [krishLogs, setKrishLogs] = useState([{
@@ -261,8 +439,22 @@ export default function App() {
   }, [user]);
 
   // Compute overridden active variables
-  const activeLogs = activeProfile === 'krish' ? krishLogs : activeProfile === 'rahul' ? rahulLogs : logs;
-  const activeOffsets = activeProfile === 'krish' ? krishOffsets : activeProfile === 'rahul' ? rahulOffsets : offsets;
+  const activeLogs = activeProfile === 'krish' 
+    ? krishLogs 
+    : activeProfile === 'rahul' 
+    ? rahulLogs 
+    : (activeProfile === 'me' 
+        ? logs 
+        : (customLogs[activeProfile] || []));
+
+  const activeOffsets = activeProfile === 'krish' 
+    ? krishOffsets 
+    : activeProfile === 'rahul' 
+    ? rahulOffsets 
+    : (activeProfile === 'me' 
+        ? offsets 
+        : (customOffsets[activeProfile] || []));
+
   const activeOffsetTotal = activeOffsets.reduce((acc, curr) => acc + (curr.amountKg || 0), 0);
   const activeCurrentLog = activeLogs.length > 0 ? activeLogs[0] : null;
 
@@ -274,32 +466,49 @@ export default function App() {
     );
   }, [activeCurrentLog, activeOffsetTotal]);
 
-  // Compute dynamic leaderboard by merging static benchmarks and active logs
+  // Compute dynamic leaderboard by merging static benchmarks and all dynamic profiles
   const dynamicLeaderboard = useMemo(() => {
-    const myLatestScore = logs.length > 0 ? logs[0].score : 0;
     const krishLatestScore = krishLogs.length > 0 ? krishLogs[0].score : 820;
     const rahulLatestScore = rahulLogs.length > 0 ? rahulLogs[0].score : 1120;
 
-    let board = leaderboard.map(item => {
-      if (item.id === 'b_krish') {
-        return { ...item, score: krishLatestScore, isCurrentUser: activeProfile === 'krish' };
+    // Filter out benchmarks that match preset ids so we don't duplicate
+    const benchmarkUsers = leaderboard.filter(item => 
+      item.id !== 'b_krish' && 
+      item.id !== 'b_rahul' && 
+      item.id !== 'guest_user' && 
+      item.userId !== user?.uid
+    );
+
+    const profileEntries = profiles.map(profile => {
+      let score = 1580; // default benchmark if no logs
+      let logList = [];
+      if (profile.id === 'me') {
+        logList = logs;
+      } else if (profile.id === 'krish') {
+        logList = krishLogs;
+      } else if (profile.id === 'rahul') {
+        logList = rahulLogs;
+      } else {
+        logList = customLogs[profile.id] || [];
       }
-      if (item.id === 'b_rahul') {
-        return { ...item, score: rahulLatestScore, isCurrentUser: activeProfile === 'rahul' };
+      
+      if (logList.length > 0) {
+        score = logList[0].score;
       }
-      if (item.id === 'guest_user' || item.userId === user?.uid) {
-        return { 
-          ...item, 
-          name: activeProfile === 'me' ? profileName : item.name, 
-          score: myLatestScore || item.score, 
-          isCurrentUser: activeProfile === 'me' 
-        };
-      }
-      return { ...item, isCurrentUser: false };
+
+      return {
+        id: profile.id,
+        name: profile.name,
+        avatar: profile.avatar,
+        score: score,
+        isCurrentUser: activeProfile === profile.id,
+        isCustom: profile.id !== 'me' && profile.id !== 'krish' && profile.id !== 'rahul'
+      };
     });
 
-    return board.sort((a, b) => a.score - b.score);
-  }, [leaderboard, logs, krishLogs, rahulLogs, activeProfile, user, profileName]);
+    // Merge benchmark users with dynamic profiles, sorting by score ascending (lower is better!)
+    return [...profileEntries, ...benchmarkUsers].sort((a, b) => a.score - b.score);
+  }, [leaderboard, logs, krishLogs, rahulLogs, customLogs, profiles, activeProfile, user]);
 
   // Migration logic
   const migrateGuestLogsToCloud = async (uid) => {
@@ -367,6 +576,14 @@ export default function App() {
       setActiveView('dashboard');
       return;
     }
+    if (activeProfile !== 'me') {
+      setCustomLogs(prev => ({
+        ...prev,
+        [activeProfile]: [newLog, ...(prev[activeProfile] || [])]
+      }));
+      setActiveView('dashboard');
+      return;
+    }
 
     if (user === 'guest') {
       const updatedLogs = [newLog, ...logs];
@@ -399,6 +616,13 @@ export default function App() {
       setRahulOffsets([newOffset, ...rahulOffsets]);
       return;
     }
+    if (activeProfile !== 'me') {
+      setCustomOffsets(prev => ({
+        ...prev,
+        [activeProfile]: [newOffset, ...(prev[activeProfile] || [])]
+      }));
+      return;
+    }
 
     if (user === 'guest') {
       const updatedOffsets = [newOffset, ...offsets];
@@ -421,6 +645,13 @@ export default function App() {
     }
     if (activeProfile === 'rahul') {
       setRahulLogs(rahulLogs.filter(l => l.id !== logId));
+      return;
+    }
+    if (activeProfile !== 'me') {
+      setCustomLogs(prev => ({
+        ...prev,
+        [activeProfile]: (prev[activeProfile] || []).filter(l => l.id !== logId)
+      }));
       return;
     }
 
@@ -454,6 +685,109 @@ export default function App() {
       console.error(e);
     }
   };
+
+  const renderProfileDropdown = (positionClasses = "right-0 top-12") => {
+    const points = activeRewards.points;
+    const evolution = getEvolutionLevel(points);
+    return (
+      <div 
+        onClick={(e) => e.stopPropagation()} // Prevent closing dropdown on content click
+        className={`absolute ${positionClasses} w-56 bg-surface-container-highest border border-outline-variant/80 rounded-2xl shadow-xl z-50 p-sm text-left animate-scale-up text-on-surface`}
+      >
+        {/* Profile Header */}
+        <div className="px-md py-sm border-b border-outline-variant/40 flex items-center gap-sm">
+          <ProfileAvatar avatar={currentProfileObj.avatar} className="w-8 h-8" />
+          <div className="min-w-0">
+            <p className="font-bold text-sm truncate">{currentProfileObj.name}</p>
+            <p className="text-[10px] text-primary font-bold uppercase tracking-wider flex items-center gap-xs">
+              <span className="material-symbols-outlined text-xs">spa</span>
+              {evolution.title}
+            </p>
+          </div>
+        </div>
+
+        {/* Menu Items */}
+        <div className="py-xs space-y-[2px]">
+          <button 
+            onClick={() => {
+              setActiveView('rewards');
+              setIsDropdownOpen(false);
+            }}
+            className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg transition-colors text-left"
+          >
+            <span className="material-symbols-outlined text-sm mr-md text-outline">account_circle</span>
+            <span className="text-xs font-semibold">My Profile</span>
+          </button>
+          <button 
+            onClick={() => {
+              setActiveView('dashboard');
+              setIsDropdownOpen(false);
+            }}
+            className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg transition-colors text-left"
+          >
+            <span className="material-symbols-outlined text-sm mr-md text-outline">dashboard</span>
+            <span className="text-xs font-semibold">Dashboard</span>
+          </button>
+          <button 
+            onClick={() => {
+              setActiveView('rewards');
+              setIsDropdownOpen(false);
+            }}
+            className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg transition-colors text-left"
+          >
+            <span className="material-symbols-outlined text-sm mr-md text-outline">emoji_events</span>
+            <span className="text-xs font-semibold">Achievements</span>
+          </button>
+          <button 
+            onClick={() => {
+              setActiveView('rewards');
+              setIsDropdownOpen(false);
+            }}
+            className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg transition-colors text-left"
+          >
+            <span className="material-symbols-outlined text-sm mr-md text-outline">settings</span>
+            <span className="text-xs font-semibold">Settings</span>
+          </button>
+        </div>
+
+        {/* Footer actions */}
+        <div className="border-t border-outline-variant/40 pt-xs mt-xs space-y-[2px]">
+          <button 
+            onClick={() => {
+              setIsProfileSwitcherOpen(true);
+              setIsDropdownOpen(false);
+            }}
+            className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg text-secondary transition-colors text-left font-bold"
+          >
+            <span className="material-symbols-outlined text-sm mr-md">switch_account</span>
+            <span className="text-xs">Switch User</span>
+          </button>
+          <button 
+            onClick={() => {
+              setIsProfileSwitcherOpen(true);
+              setIsAddingProfile(true);
+              setIsDropdownOpen(false);
+            }}
+            className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg text-emerald-600 transition-colors text-left font-bold"
+          >
+            <span className="material-symbols-outlined text-sm mr-md">person_add</span>
+            <span className="text-xs">Add Account</span>
+          </button>
+          <button 
+            onClick={() => {
+              handleSignOut();
+              setIsDropdownOpen(false);
+            }}
+            className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg text-error transition-colors text-left font-bold"
+          >
+            <span className="material-symbols-outlined text-sm mr-md">logout</span>
+            <span className="text-xs">Logout</span>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
 
   // Loading screen
   if (loadingAuth) {
@@ -790,15 +1124,12 @@ export default function App() {
 
   // Render Portal layout if authenticated / guest sandbox
   return (
-    <div className="flex min-h-screen bg-background text-on-surface overflow-x-hidden">
+    <div className={`flex min-h-screen bg-background text-on-surface overflow-x-hidden theme-${activeTheme}`}>
       {/* Sidebar for Desktop */}
       <aside className="hidden md:flex fixed left-0 top-0 h-screen w-64 flex-col bg-surface-container shadow-sm p-md gap-base z-50">
         <div className="px-md py-lg flex items-center gap-3 border-b border-outline-variant/30">
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed">
-            <img 
-              alt="User Status" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvGMxZCe9hqf_P9lP97vBNezRFUjQRR3mRVqTgCyzOl4TAVy_OoGSRbmOT7Fw9-Qupm4MzjQkxXRUph91sRBjBaeLSWPbiZ1p9rqHC9rHN7iJ7OZih7LJGeXQbAHayvnhB24D2419pHibt8WGMBeAovm9ncf1fX5GyGg5QWrPwM6NxjF2O_RmRYAa9Ttz9fDQxli2bmPOSVEo-b7RpwsqjGx0EchY5QRtPgk3xSDErglRMi6uuvjTiNOMHQFZvBQ17gX-sX16uMo4"
-            />
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed relative flex items-center justify-center bg-white/10 shadow-sm">
+            <ProfileAvatar avatar={currentProfileObj.avatar} className="w-full h-full" />
           </div>
           <div>
             <h1 className="font-headline-md text-headline-md font-bold text-primary">CarbonSense</h1>
@@ -808,18 +1139,20 @@ export default function App() {
           </div>
         </div>
 
-        {/* Sandbox Profile Selector */}
+        {/* Sandbox Profile Switcher (JioCinema / Hotstar Style) */}
         <div className="px-md py-sm border-b border-outline-variant/30 mb-sm">
-          <label className="text-[9px] font-bold text-outline uppercase block mb-1">Active Sandbox Profile</label>
-          <select 
-            value={activeProfile}
-            onChange={(e) => setActiveProfile(e.target.value)}
-            className="w-full bg-surface-container-high border border-outline-variant rounded-md px-sm py-xs text-[11px] font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+          <button
+            onClick={() => setIsProfileSwitcherOpen(true)}
+            className="w-full flex items-center justify-between bg-primary-container text-white hover:bg-primary transition-all duration-200 rounded-xl px-md py-sm font-bold text-[12px] shadow-sm shadow-primary/20"
           >
-            <option value="me">You (Guest/Auth)</option>
-            <option value="krish">Krish (EV, Solar)</option>
-            <option value="rahul">Rahul (Transit, Veg)</option>
-          </select>
+            <div className="flex items-center gap-xs">
+              <span className="material-symbols-outlined text-sm">switch_account</span>
+              <span>Switch Profile</span>
+            </div>
+            <span className="bg-white/20 px-xs py-1 rounded text-[9px] uppercase tracking-wider font-bold">
+              {currentProfileObj.name}
+            </span>
+          </button>
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto">
@@ -849,57 +1182,49 @@ export default function App() {
         </nav>
 
         <div className="mt-auto border-t border-outline-variant pt-md flex flex-col gap-md">
-          <div className="flex items-center gap-md px-md">
-            <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-lg">
-              {activeProfile === 'me' ? profileAvatar : activeProfile === 'krish' ? '🚗' : '🚲'}
-            </div>
-            <div className="min-w-0">
-              <p className="font-label-md text-on-surface text-[13px] truncate">
-                {activeProfile === 'me' ? profileName : activeProfile === 'krish' ? 'Krish (EV, Solar)' : 'Rahul (Transit, Veg)'}
-              </p>
-              <p className="text-[11px] text-on-surface-variant truncate">
-                {activeProfile === 'me' ? (user === 'guest' ? 'Guest Sandbox' : user.email) : 'Simulated Profile'}
-              </p>
-            </div>
-          </div>
-          <button 
-            onClick={handleSignOut} 
-            className="flex items-center px-md py-sm text-on-surface-variant hover:bg-surface-container-highest transition-all rounded-lg w-full text-left"
+          <div 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center justify-between gap-sm px-md py-sm rounded-xl hover:bg-surface-container-high transition-all cursor-pointer relative"
           >
-            <span className="material-symbols-outlined mr-md">logout</span>
-            <span className="font-label-md text-label-md">
-              {user === 'guest' ? 'Logout Sandbox' : 'Logout'}
-            </span>
-          </button>
+            <div className="flex items-center gap-md min-w-0">
+              <ProfileAvatar avatar={currentProfileObj.avatar} className="w-10 h-10" />
+              <div className="min-w-0">
+                <p className="font-label-md text-on-surface text-[13px] font-bold truncate">
+                  {currentProfileObj.name}
+                </p>
+                <p className="text-[10px] text-on-surface-variant truncate">
+                  {activeProfile === 'me' ? (user === 'guest' ? 'Guest Sandbox' : user.email) : 'Simulated Account'}
+                </p>
+              </div>
+            </div>
+            <span className="material-symbols-outlined text-outline">more_vert</span>
+            
+            {isDropdownOpen && renderProfileDropdown('left-0 bottom-14')}
+          </div>
         </div>
       </aside>
 
       {/* Mobile Top Header (Hidden on Desktop) */}
       <header className="md:hidden h-16 flex items-center justify-between px-margin-mobile bg-surface shadow-[0px_4px_20px_rgba(45,90,39,0.08)] fixed top-0 left-0 right-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed">
-            <img 
-              alt="Eco Warrior Status" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvGMxZCe9hqf_P9lP97vBNezRFUjQRR3mRVqTgCyzOl4TAVy_OoGSRbmOT7Fw9-Qupm4MzjQkxXRUph91sRBjBaeLSWPbiZ1p9rqHC9rHN7iJ7OZih7LJGeXQbAHayvnhB24D2419pHibt8WGMBeAovm9ncf1fX5GyGg5QWrPwM6NxjF2O_RmRYAa9Ttz9fDQxli2bmPOSVEo-b7RpwsqjGx0EchY5QRtPgk3xSDErglRMi6uuvjTiNOMHQFZvBQ17gX-sX16uMo4"
-            />
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed relative flex items-center justify-center bg-white/10 shadow-sm">
+            <ProfileAvatar avatar={currentProfileObj.avatar} className="w-full h-full" />
           </div>
           <h1 className="font-headline-lg text-primary font-bold">CarbonSense AI</h1>
         </div>
-        <div className="flex items-center gap-xs">
-          <select 
-            value={activeProfile}
-            onChange={(e) => setActiveProfile(e.target.value)}
-            className="bg-secondary-container/80 border border-outline-variant/30 rounded-full px-sm py-xs text-[10px] font-bold text-on-secondary-container outline-none cursor-pointer max-w-[90px]"
-          >
-            <option value="me">You</option>
-            <option value="krish">Krish</option>
-            <option value="rahul">Rahul</option>
-          </select>
+        <div className="flex items-center gap-xs relative">
           <button 
-            onClick={() => alert(`Stars Achievement Level: Level ${activeRewards.unlockedCount} ${activeRewards.unlockedCount >= 5 ? 'Eco Champion' : 'Eco Explorer'}`)} 
-            className="material-symbols-outlined text-primary hover:bg-surface-container-low transition-colors p-2 rounded-full active:scale-95 duration-100"
+            onClick={() => setIsProfileSwitcherOpen(true)}
+            className="bg-secondary-container/85 border border-outline-variant/30 rounded-full px-sm py-xs text-[10px] font-bold text-on-secondary-container flex items-center gap-xs"
           >
-            stars
+            <span className="material-symbols-outlined text-xs">switch_account</span>
+            <span>Switch</span>
+          </button>
+          <button 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)} 
+            className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed relative flex items-center justify-center bg-white/10 cursor-pointer shadow-sm"
+          >
+            <ProfileAvatar avatar={currentProfileObj.avatar} className="w-full h-full" />
           </button>
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
@@ -907,6 +1232,7 @@ export default function App() {
           >
             <span className="material-symbols-outlined text-[28px]">{isMobileMenuOpen ? 'close' : 'menu'}</span>
           </button>
+          {isDropdownOpen && renderProfileDropdown('right-0 top-12')}
         </div>
       </header>
 
@@ -940,16 +1266,17 @@ export default function App() {
           </nav>
           
           <div className="border-t border-outline-variant pt-md flex flex-col gap-md">
-            <div className="flex items-center gap-md">
-              <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-lg">
-                {activeProfile === 'me' ? profileAvatar : activeProfile === 'krish' ? '🚗' : '🚲'}
-              </div>
+            <div 
+              onClick={() => { setIsMobileMenuOpen(false); setIsDropdownOpen(true); }}
+              className="flex items-center gap-md cursor-pointer"
+            >
+              <ProfileAvatar avatar={currentProfileObj.avatar} className="w-10 h-10" />
               <div>
-                <p className="font-label-md text-on-surface">
-                  {activeProfile === 'me' ? profileName : activeProfile === 'krish' ? 'Krish (EV, Solar)' : 'Rahul (Transit, Veg)'}
+                <p className="font-label-md text-on-surface font-bold">
+                  {currentProfileObj.name}
                 </p>
                 <p className="text-[11px] text-on-surface-variant">
-                  {activeProfile === 'me' ? (user === 'guest' ? 'Guest Sandbox' : user.email) : 'Simulated Profile'}
+                  {activeProfile === 'me' ? (user === 'guest' ? 'Guest Sandbox' : user.email) : 'Simulated Account'}
                 </p>
               </div>
             </div>
@@ -964,8 +1291,179 @@ export default function App() {
         </div>
       )}
 
+      {/* Theme Overrides Stylesheet */}
+      <style>{`
+        /* Premium Dark Neon Theme Styles */
+        .theme-cyber-green {
+          --background: #061208;
+          --on-surface: #a3ffd1;
+          --outline-variant: #082d13;
+        }
+        .theme-cyber-green.flex {
+          background-color: #061208 !important;
+          color: #a3ffd1 !important;
+        }
+        .theme-cyber-green aside {
+          background-color: #0c1f0f !important;
+          border-right: 1px solid #143e1d !important;
+        }
+        .theme-cyber-green .bg-surface {
+          background-color: #091a0c !important;
+        }
+        .theme-cyber-green .bg-surface-container {
+          background-color: #0c1f0f !important;
+        }
+        .theme-cyber-green .bg-surface-container-high {
+          background-color: #122c16 !important;
+        }
+        .theme-cyber-green .bg-surface-container-lowest {
+          background-color: #040e05 !important;
+        }
+        .theme-cyber-green .bg-primary {
+          background-color: #00ff66 !important;
+          color: #000000 !important;
+        }
+        .theme-cyber-green .bg-primary-container {
+          background-color: #0b3d17 !important;
+          color: #00ff66 !important;
+        }
+        .theme-cyber-green .text-primary {
+          color: #00ff66 !important;
+        }
+        .theme-cyber-green .border-outline-variant {
+          border-color: #143e1d !important;
+        }
+        .theme-cyber-green .glass-card {
+          background: rgba(12, 31, 15, 0.7) !important;
+          border-color: rgba(0, 255, 102, 0.25) !important;
+          box-shadow: 0 0 20px rgba(0, 255, 102, 0.1) !important;
+        }
+
+        /* Premium Gold Theme Styles */
+        .theme-gold {
+          --background: #15110c;
+          --on-surface: #fcecd7;
+          --outline-variant: #3a2e1d;
+        }
+        .theme-gold.flex {
+          background-color: #15110c !important;
+          color: #fcecd7 !important;
+        }
+        .theme-gold aside {
+          background-color: #261f15 !important;
+          border-right: 1px solid #453825 !important;
+        }
+        .theme-gold .bg-surface {
+          background-color: #1e1810 !important;
+        }
+        .theme-gold .bg-surface-container {
+          background-color: #261f15 !important;
+        }
+        .theme-gold .bg-surface-container-high {
+          background-color: #352c1e !important;
+        }
+        .theme-gold .bg-surface-container-lowest {
+          background-color: #100c08 !important;
+        }
+        .theme-gold .bg-primary {
+          background-color: #bf953f !important;
+          color: #000000 !important;
+        }
+        .theme-gold .bg-primary-container {
+          background-color: #463718 !important;
+          color: #bf953f !important;
+        }
+        .theme-gold .text-primary {
+          color: #bf953f !important;
+        }
+        .theme-gold .border-outline-variant {
+          border-color: #453825 !important;
+        }
+        .theme-gold .glass-card {
+          background: rgba(38, 31, 21, 0.75) !important;
+          border-color: rgba(191, 149, 63, 0.25) !important;
+          box-shadow: 0 0 20px rgba(191, 149, 63, 0.1) !important;
+        }
+        
+        /* Dark Neon Theme Styles */
+        .theme-dark-neon {
+          --background: #070b13;
+          --on-surface: #e2e8f0;
+          --outline-variant: #1e293b;
+        }
+        .theme-dark-neon.flex {
+          background-color: #070b13 !important;
+          color: #e2e8f0 !important;
+        }
+        .theme-dark-neon aside {
+          background-color: #0f172a !important;
+          border-right: 1px solid #1e293b !important;
+        }
+        .theme-dark-neon .bg-surface {
+          background-color: #0d1321 !important;
+        }
+        .theme-dark-neon .bg-surface-container {
+          background-color: #0f172a !important;
+        }
+        .theme-dark-neon .bg-surface-container-high {
+          background-color: #1e293b !important;
+        }
+        .theme-dark-neon .bg-surface-container-lowest {
+          background-color: #030710 !important;
+        }
+        .theme-dark-neon .bg-primary {
+          background-color: #10b981 !important;
+          color: #000000 !important;
+        }
+        .theme-dark-neon .bg-primary-container {
+          background-color: #064e3b !important;
+          color: #34d399 !important;
+        }
+        .theme-dark-neon .text-primary {
+          color: #34d399 !important;
+        }
+        .theme-dark-neon .border-outline-variant {
+          border-color: #1e293b !important;
+        }
+        .theme-dark-neon .glass-card {
+          background: rgba(15, 23, 42, 0.7) !important;
+          border-color: rgba(52, 211, 153, 0.2) !important;
+          box-shadow: 0 0 20px rgba(16, 185, 129, 0.1) !important;
+        }
+      `}</style>
+
       {/* Main Content Area */}
       <main className="md:ml-64 flex-1 flex flex-col min-h-screen bg-background relative overflow-hidden pt-16 pb-20 md:pt-0 md:pb-0">
+        
+        {/* Global Desktop Top Bar */}
+        <header className="hidden md:flex h-16 items-center justify-end px-xl bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 sticky top-0 z-35">
+          <div className="flex items-center gap-md relative">
+            <button 
+              onClick={() => alert(`Stars Achievement Level: Level ${activeRewards.unlockedCount} ${activeRewards.unlockedCount >= 5 ? 'Eco Champion' : 'Eco Explorer'}`)} 
+              className="material-symbols-outlined text-primary hover:bg-surface-container-low transition-colors p-2 rounded-full active:scale-95 duration-100"
+            >
+              stars
+            </button>
+
+            {/* Profile Dropdown Trigger */}
+            <button 
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-sm bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 rounded-full pl-xs pr-md py-xs shadow-sm transition-all"
+            >
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-primary-fixed relative flex items-center justify-center bg-white/10 shadow-sm">
+                <ProfileAvatar avatar={currentProfileObj.avatar} className="w-full h-full" />
+              </div>
+              <span className="font-label-md text-label-md text-on-surface font-semibold max-w-[120px] truncate">
+                {currentProfileObj.name}
+              </span>
+              <span className="material-symbols-outlined text-sm text-outline">arrow_drop_down</span>
+            </button>
+            
+            {/* Desktop Profile Dropdown Menu */}
+            {isDropdownOpen && renderProfileDropdown('right-0 top-12')}
+          </div>
+        </header>
+
         {activeView === 'dashboard' && (
           <div className="p-lg md:p-xl flex-1 flex flex-col">
             <Dashboard 
@@ -974,6 +1472,7 @@ export default function App() {
               onNavigate={setActiveView}
               offsetTotal={offsetTotalToRender}
               rewards={rewardsToRender}
+              activeProfileObj={currentProfileObj}
             />
           </div>
         )}
@@ -1000,12 +1499,15 @@ export default function App() {
               setProfileAvatar={setProfileAvatar}
               profileGoal={profileGoal}
               setProfileGoal={setProfileGoal}
+              dynamicProfilesList={profiles}
+              customLogsData={customLogs}
+              onUpdateProfile={updateProfileDetails}
             />
           </div>
         )}
         {activeView === 'aiCoach' && (
           <div className="flex-1 flex flex-col h-[calc(100dvh-128px)] md:h-screen overflow-hidden">
-            <AICoach currentLog={currentLog} />
+            <AICoach currentLog={currentLog} profileName={currentProfileObj.name} />
           </div>
         )}
         {activeView === 'learningHub' && (
@@ -1063,6 +1565,367 @@ export default function App() {
           );
         })}
       </nav>
+
+      {/* JioCinema / Hotstar Style "Who's Tracking?" Switch User Gate Modal */}
+      {isProfileSwitcherOpen && (
+        <div className="fixed inset-0 bg-[#0c111b]/95 backdrop-blur-xl z-[100] flex flex-col justify-center items-center p-lg animate-fade-in text-white">
+          <div className="max-w-2xl w-full text-center space-y-xl">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-md">
+              {isManageMode ? "Manage Profiles" : "Who's Tracking Carbon Today?"}
+            </h2>
+            
+            {/* Profiles Selection Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-lg justify-center items-center py-md">
+              {profiles.map(profile => {
+                const isSelected = activeProfile === profile.id;
+                return (
+                  <button 
+                    key={profile.id}
+                    onClick={() => handleProfileSelect(profile)}
+                    aria-label={`Select profile ${profile.name}`}
+                    className="flex flex-col items-center gap-base group cursor-pointer relative focus:outline-none"
+                  >
+                    {/* Avatar Ring Container */}
+                    <div className={`w-24 h-24 rounded-full p-1 relative transition-all duration-300 transform group-hover:scale-110 ${
+                      isSelected 
+                        ? 'ring-4 ring-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.5)]' 
+                        : 'ring-2 ring-white/20 hover:ring-white/80'
+                    }`}>
+                      <ProfileAvatar avatar={profile.avatar} className="w-full h-full" />
+                      
+                      {/* Manage mode overlay pencil icon */}
+                      {isManageMode && (
+                        <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-100 transition-opacity">
+                          <span className="material-symbols-outlined text-white text-xl">edit</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Profile Name */}
+                    <span className="text-sm font-bold tracking-wide text-white/90 group-hover:text-white mt-xs">
+                      {profile.name}
+                    </span>
+                  </button>
+                );
+              })}
+
+              {/* Add Account Card */}
+              <button 
+                onClick={() => setIsAddingProfile(true)}
+                aria-label="Add a new sandbox profile"
+                className="flex flex-col items-center gap-base group cursor-pointer focus:outline-none"
+              >
+                <div className="w-24 h-24 rounded-full border-2 border-dashed border-white/30 hover:border-white flex items-center justify-center transition-all duration-300 transform group-hover:scale-105 bg-white/5 hover:bg-white/10">
+                  <span className="material-symbols-outlined text-white/60 group-hover:text-white text-3xl">add</span>
+                </div>
+                <span className="text-sm font-bold tracking-wide text-white/60 group-hover:text-white mt-xs">Add Profile</span>
+              </button>
+            </div>
+
+            {/* Switch Action Buttons */}
+            <div className="flex justify-center gap-md pt-lg">
+              <button 
+                onClick={() => setIsManageMode(!isManageMode)}
+                className="px-xl py-sm rounded-full border border-white/20 bg-white/5 hover:bg-white/15 text-xs font-bold tracking-wider uppercase transition-all"
+              >
+                {isManageMode ? "Done Managing" : "Manage Profiles"}
+              </button>
+              <button 
+                onClick={() => {
+                  setIsProfileSwitcherOpen(false);
+                  setIsManageMode(false);
+                }}
+                className="px-xl py-sm rounded-full bg-white text-black hover:bg-white/90 text-xs font-bold tracking-wider uppercase transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Profile Sub-Modal */}
+      {isAddingProfile && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] flex items-center justify-center p-md">
+          <div 
+            className="bg-[#182030] rounded-3xl border border-outline-variant/20 p-xl max-w-md w-full shadow-2xl space-y-md animate-scale-up text-white"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold flex items-center gap-xs">
+              <span className="material-symbols-outlined text-emerald-500">person_add</span>
+              Create Sandbox Profile
+            </h3>
+            
+            <div className="space-y-sm text-left">
+              <div>
+                <label htmlFor="add-name-input" className="text-[11px] font-bold text-white/60 uppercase block mb-xs">Profile Name</label>
+                <input 
+                  id="add-name-input"
+                  type="text" 
+                  value={addName}
+                  onChange={(e) => {
+                    setAddName(e.target.value);
+                    setAddAvatarPreview(generateAIAvatarSvg(e.target.value, addPersona, addStyle, addBg, 0));
+                  }}
+                  placeholder="e.g. Priya"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-md py-sm text-sm outline-none focus:ring-1 focus:ring-emerald-500 text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-sm">
+                <div>
+                  <label htmlFor="add-persona-select" className="text-[11px] font-bold text-white/60 uppercase block mb-xs">Persona</label>
+                  <select 
+                    id="add-persona-select"
+                    value={addPersona}
+                    onChange={(e) => {
+                      setAddPersona(e.target.value);
+                      setAddAvatarPreview(generateAIAvatarSvg(addName, e.target.value, addStyle, addBg, 0));
+                    }}
+                    className="w-full bg-[#1e293b] border border-white/10 rounded-xl px-sm py-sm text-xs outline-none text-white focus:ring-1 focus:ring-emerald-500"
+                  >
+                    <option value="explorer">Eco Explorer</option>
+                    <option value="scientist">Climate Scientist</option>
+                    <option value="warrior">Green Warrior</option>
+                    <option value="guardian">Nature Guardian</option>
+                    <option value="champion">Sustainability Champion</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="add-style-select" className="text-[11px] font-bold text-white/60 uppercase block mb-xs">Visual Style</label>
+                  <select 
+                    id="add-style-select"
+                    value={addStyle}
+                    onChange={(e) => {
+                      setAddStyle(e.target.value);
+                      setAddAvatarPreview(generateAIAvatarSvg(addName, addPersona, e.target.value, addBg, 0));
+                    }}
+                    className="w-full bg-[#1e293b] border border-white/10 rounded-xl px-sm py-sm text-xs outline-none text-white focus:ring-1 focus:ring-emerald-500"
+                  >
+                    <option value="cosmic">Cosmic Space</option>
+                    <option value="nature">Neon Forest</option>
+                    <option value="cyber">Cyberpunk HUD</option>
+                    <option value="geometry">Crystal Geometry</option>
+                    <option value="minimalist">Minimalist Fine Line</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-sm">
+                <div>
+                  <label htmlFor="add-bg-select" className="text-[11px] font-bold text-white/60 uppercase block mb-xs">Background</label>
+                  <select 
+                    id="add-bg-select"
+                    value={addBg}
+                    onChange={(e) => {
+                      setAddBg(e.target.value);
+                      setAddAvatarPreview(generateAIAvatarSvg(addName, addPersona, addStyle, e.target.value, 0));
+                    }}
+                    className="w-full bg-[#1e293b] border border-white/10 rounded-xl px-sm py-sm text-xs outline-none text-white focus:ring-1 focus:ring-emerald-500"
+                  >
+                    <option value="gradient-cosmic">Cosmic Purple</option>
+                    <option value="gradient-forest">Forest Green</option>
+                    <option value="gradient-ocean">Ocean Blue</option>
+                    <option value="gradient-sunset">Sunset Gold</option>
+                    <option value="gradient-cyber">Cyber Pink</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="add-theme-select" className="text-[11px] font-bold text-white/60 uppercase block mb-xs">Premium Theme</label>
+                  <select 
+                    id="add-theme-select"
+                    value={addTheme}
+                    onChange={(e) => setAddTheme(e.target.value)}
+                    className="w-full bg-[#1e293b] border border-white/10 rounded-xl px-sm py-sm text-xs outline-none text-white focus:ring-1 focus:ring-emerald-500"
+                  >
+                    <option value="classic">Classic Emerald</option>
+                    <option value="cyber-green">Cyber Green</option>
+                    <option value="dark-neon">Dark Neon</option>
+                    <option value="gold">Premium Gold</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="add-goal-input" className="text-[11px] font-bold text-white/60 uppercase block mb-xs">Target Carbon Goal (kg/mo)</label>
+                <input 
+                  id="add-goal-input"
+                  type="number" 
+                  value={addGoal}
+                  onChange={(e) => setAddGoal(parseInt(e.target.value) || 1500)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-md py-sm text-sm outline-none focus:ring-1 focus:ring-emerald-500 text-white"
+                />
+              </div>
+
+              {/* Dynamic Preview Box */}
+              <div className="flex flex-col items-center bg-white/5 p-md rounded-2xl border border-white/10 gap-xs">
+                <span className="text-[10px] text-white/40 uppercase font-bold tracking-wider">AI DP Preview</span>
+                <ProfileAvatar avatar={addAvatarPreview} className="w-20 h-20" />
+              </div>
+            </div>
+
+            <div className="flex gap-sm pt-md">
+              <button 
+                onClick={() => setIsAddingProfile(false)}
+                className="flex-1 px-md py-sm rounded-xl border border-white/20 hover:bg-white/10 text-xs font-bold tracking-wider uppercase transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleCreateProfile}
+                className="flex-1 px-md py-sm rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-bold tracking-wider uppercase transition-all"
+              >
+                Create Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Profile Sub-Modal */}
+      {editingProfileObj && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] flex items-center justify-center p-md">
+          <div 
+            className="bg-[#182030] rounded-3xl border border-outline-variant/20 p-xl max-w-md w-full shadow-2xl space-y-md animate-scale-up text-white"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold flex items-center gap-xs">
+              <span className="material-symbols-outlined text-emerald-500">edit</span>
+              Edit Profile Settings
+            </h3>
+            
+            <div className="space-y-sm text-left">
+              <div>
+                <label htmlFor="edit-name-input" className="text-[11px] font-bold text-white/60 uppercase block mb-xs">Profile Name</label>
+                <input 
+                  id="edit-name-input"
+                  type="text" 
+                  value={editName}
+                  onChange={(e) => {
+                    setEditName(e.target.value);
+                    setEditAvatarPreview(generateAIAvatarSvg(e.target.value, editPersona, editStyle, editBg, 0));
+                  }}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-md py-sm text-sm outline-none focus:ring-1 focus:ring-emerald-500 text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-sm">
+                <div>
+                  <label htmlFor="edit-persona-select" className="text-[11px] font-bold text-white/60 uppercase block mb-xs">Persona</label>
+                  <select 
+                    id="edit-persona-select"
+                    value={editPersona}
+                    onChange={(e) => {
+                      setEditPersona(e.target.value);
+                      setEditAvatarPreview(generateAIAvatarSvg(editName, e.target.value, editStyle, editBg, 0));
+                    }}
+                    className="w-full bg-[#1e293b] border border-white/10 rounded-xl px-sm py-sm text-xs outline-none text-white focus:ring-1 focus:ring-emerald-500"
+                  >
+                    <option value="explorer">Eco Explorer</option>
+                    <option value="scientist">Climate Scientist</option>
+                    <option value="warrior">Green Warrior</option>
+                    <option value="guardian">Nature Guardian</option>
+                    <option value="champion">Sustainability Champion</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="edit-style-select" className="text-[11px] font-bold text-white/60 uppercase block mb-xs">Visual Style</label>
+                  <select 
+                    id="edit-style-select"
+                    value={editStyle}
+                    onChange={(e) => {
+                      setEditStyle(e.target.value);
+                      setEditAvatarPreview(generateAIAvatarSvg(editName, editPersona, e.target.value, editBg, 0));
+                    }}
+                    className="w-full bg-[#1e293b] border border-white/10 rounded-xl px-sm py-sm text-xs outline-none text-white focus:ring-1 focus:ring-emerald-500"
+                  >
+                    <option value="cosmic">Cosmic Space</option>
+                    <option value="nature">Neon Forest</option>
+                    <option value="cyber">Cyberpunk HUD</option>
+                    <option value="geometry">Crystal Geometry</option>
+                    <option value="minimalist">Minimalist Fine Line</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-sm">
+                <div>
+                  <label htmlFor="edit-bg-select" className="text-[11px] font-bold text-white/60 uppercase block mb-xs">Background</label>
+                  <select 
+                    id="edit-bg-select"
+                    value={editBg}
+                    onChange={(e) => {
+                      setEditBg(e.target.value);
+                      setEditAvatarPreview(generateAIAvatarSvg(editName, editPersona, editStyle, e.target.value, 0));
+                    }}
+                    className="w-full bg-[#1e293b] border border-white/10 rounded-xl px-sm py-sm text-xs outline-none text-white focus:ring-1 focus:ring-emerald-500"
+                  >
+                    <option value="gradient-cosmic">Cosmic Purple</option>
+                    <option value="gradient-forest">Forest Green</option>
+                    <option value="gradient-ocean">Ocean Blue</option>
+                    <option value="gradient-sunset">Sunset Gold</option>
+                    <option value="gradient-cyber">Cyber Pink</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="edit-theme-select" className="text-[11px] font-bold text-white/60 uppercase block mb-xs">Premium Theme</label>
+                  <select 
+                    id="edit-theme-select"
+                    value={editTheme}
+                    onChange={(e) => setEditTheme(e.target.value)}
+                    className="w-full bg-[#1e293b] border border-white/10 rounded-xl px-sm py-sm text-xs outline-none text-white focus:ring-1 focus:ring-emerald-500"
+                  >
+                    <option value="classic">Classic Emerald</option>
+                    <option value="cyber-green">Cyber Green</option>
+                    <option value="dark-neon">Dark Neon</option>
+                    <option value="gold">Premium Gold</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="edit-goal-input" className="text-[11px] font-bold text-white/60 uppercase block mb-xs">Target Carbon Goal (kg/mo)</label>
+                <input 
+                  id="edit-goal-input"
+                  type="number" 
+                  value={editGoal}
+                  onChange={(e) => setEditGoal(parseInt(e.target.value) || 1500)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-md py-sm text-sm outline-none focus:ring-1 focus:ring-emerald-500 text-white"
+                />
+              </div>
+
+              {/* Dynamic Preview Box */}
+              <div className="flex flex-col items-center bg-white/5 p-md rounded-2xl border border-white/10 gap-xs">
+                <span className="text-[10px] text-white/40 uppercase font-bold tracking-wider">AI DP Preview</span>
+                <ProfileAvatar avatar={editAvatarPreview} className="w-20 h-20" />
+              </div>
+            </div>
+
+            <div className="flex gap-sm pt-md">
+              {editingProfileObj.id !== 'me' && (
+                <button 
+                  onClick={handleDeleteProfile}
+                  className="px-md py-sm rounded-xl bg-error hover:bg-error/90 text-white text-xs font-bold tracking-wider uppercase transition-all"
+                >
+                  Delete
+                </button>
+              )}
+              <button 
+                onClick={() => setEditingProfileObj(null)}
+                className="flex-1 px-md py-sm rounded-xl border border-white/20 hover:bg-white/10 text-xs font-bold tracking-wider uppercase transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveProfileFromSwitcher}
+                className="flex-1 px-md py-sm rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-bold tracking-wider uppercase transition-all"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

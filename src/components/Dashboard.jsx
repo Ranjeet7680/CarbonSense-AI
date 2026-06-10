@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { ProfileAvatar } from '../utils/avatar';
 import coefficients from '../coefficients.json';
 import { Doughnut } from 'react-chartjs-2';
 import { 
@@ -10,10 +11,29 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetTotal = 0, rewards: rewardsProp }) {
+export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetTotal = 0, rewards: rewardsProp, activeProfileObj }) {
   const latestScore = currentLog ? currentLog.score : 0;
   const inputs = currentLog ? currentLog.inputs : null;
   const netEmissions = Math.max(0, latestScore - offsetTotal);
+
+  const carbonScore = latestScore === 0 ? 100 : Math.max(1, Math.min(100, Math.round(100 - (latestScore / 35))));
+  const treesPlanted = Math.round(offsetTotal / 10);
+  const challengesWon = rewardsProp ? rewardsProp.unlockedCount : 0;
+  const co2Reduced = (offsetTotal / 1000).toFixed(2);
+  const points = rewardsProp ? rewardsProp.points : 0;
+  
+  let evolutionTitle = 'Seedling';
+  let evolutionIcon = '🌱';
+  if (points >= 100 && points < 500) {
+    evolutionTitle = 'Green Learner';
+    evolutionIcon = '🌿';
+  } else if (points >= 500 && points < 1000) {
+    evolutionTitle = 'Eco Warrior';
+    evolutionIcon = '🌳';
+  } else if (points >= 1000) {
+    evolutionTitle = 'Climate Champion';
+    evolutionIcon = '🌍';
+  }
 
   // 1. Calculate Category breakdown
   const categoryData = useMemo(() => {
@@ -249,6 +269,50 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
           </button>
         )}
       </div>
+
+      {/* Profile Card Summary Widget */}
+      {activeProfileObj && (
+        <div className="bg-gradient-to-r from-primary-container to-secondary-container rounded-3xl p-lg text-white border border-outline-variant/30 relative overflow-hidden shadow-lg shadow-primary-container/10">
+          {/* Animated Background Gradients */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+          
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-lg relative z-10">
+            {/* User details and avatar */}
+            <div className="flex items-center gap-md">
+              <div className="w-20 h-20 rounded-full border-4 border-white/20 overflow-hidden relative flex items-center justify-center bg-white/10 shadow-lg">
+                <ProfileAvatar avatar={activeProfileObj.avatar} className="w-full h-full" />
+              </div>
+              <div>
+                <h2 className="font-headline-xl text-2xl md:text-3xl font-extrabold tracking-tight">{activeProfileObj.name}</h2>
+                <div className="flex items-center gap-xs mt-xs text-primary-fixed bg-white/10 px-md py-xs rounded-full w-fit text-xs font-bold uppercase tracking-wider">
+                  <span className="material-symbols-outlined text-sm">{evolutionIcon === '🌍' ? 'public' : 'spa'}</span>
+                  {evolutionTitle}
+                </div>
+              </div>
+            </div>
+
+            {/* Profile Statistics */}
+            <div className="w-full lg:w-auto grid grid-cols-2 md:grid-cols-4 gap-md bg-white/10 p-md rounded-2xl border border-white/10 backdrop-blur-sm">
+              <div className="text-center px-sm">
+                <span className="text-[10px] uppercase font-bold text-white/70 block tracking-wider">Carbon Score</span>
+                <span className="font-headline-lg text-xl font-bold text-white block mt-xs">{carbonScore}/100</span>
+              </div>
+              <div className="text-center px-sm border-l border-white/10">
+                <span className="text-[10px] uppercase font-bold text-white/70 block tracking-wider">Trees Planted</span>
+                <span className="font-headline-lg text-xl font-bold text-white block mt-xs">🌳 {treesPlanted}</span>
+              </div>
+              <div className="text-center px-sm border-l border-white/10">
+                <span className="text-[10px] uppercase font-bold text-white/70 block tracking-wider">Challenges Won</span>
+                <span className="font-headline-lg text-xl font-bold text-white block mt-xs">🏆 {challengesWon}</span>
+              </div>
+              <div className="text-center px-sm border-l border-white/10">
+                <span className="text-[10px] uppercase font-bold text-white/70 block tracking-wider">CO₂ Saved</span>
+                <span className="font-headline-lg text-xl font-bold text-white block mt-xs">❄️ {co2Reduced} T</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">

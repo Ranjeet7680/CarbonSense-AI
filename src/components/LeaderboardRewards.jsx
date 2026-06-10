@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { ProfileAvatar, generateAIAvatarSvg } from '../utils/avatar';
 
 // Static definitions of other users on the leaderboard to show details
 export const LEADERBOARD_PROFILES = {
@@ -127,7 +128,10 @@ export default function LeaderboardRewards({
   profileAvatar,
   setProfileAvatar,
   profileGoal,
-  setProfileGoal
+  setProfileGoal,
+  dynamicProfilesList = [],
+  customLogsData = {},
+  onUpdateProfile
 }) {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedBadge, setSelectedBadge] = useState(null);
@@ -137,6 +141,13 @@ export default function LeaderboardRewards({
   const [tempName, setTempName] = useState(profileName || '');
   const [tempAvatar, setTempAvatar] = useState(profileAvatar || '🌳');
   const [tempGoal, setTempGoal] = useState(profileGoal || 1500);
+  const [aiStyle, setAiStyle] = useState('cosmic');
+
+  const handleGenerateAIAvatar = () => {
+    const seed = tempName.trim() || 'user';
+    const svg = generateAIAvatarSvg(seed, aiStyle);
+    setTempAvatar(svg);
+  };
 
   const handleSaveProfileChange = () => {
     if (!tempName.trim()) return;
@@ -145,8 +156,12 @@ export default function LeaderboardRewards({
     setProfileGoal(parseInt(tempGoal) || 1500);
     setIsEditingProfile(false);
     
+    if (onUpdateProfile) {
+      onUpdateProfile(selectedUser.id, tempName.trim(), tempAvatar, parseInt(tempGoal) || 1500);
+    }
+    
     // Dynamically update the selected user modal state
-    setSelectedUser(prev => prev ? { ...prev, name: tempName.trim() } : null);
+    setSelectedUser(prev => prev ? { ...prev, name: tempName.trim(), avatar: tempAvatar } : null);
   };
 
   const activePoints = rewards.points;
@@ -207,24 +222,48 @@ export default function LeaderboardRewards({
 
   // Helper to open details for a user row
   const handleUserClick = (userRow) => {
-    // Check if it matches our active profile or guest
-    if (userRow.id === 'guest_user' || userRow.isCurrentUser) {
+    // If it's one of our dynamic sandbox profiles (active or not)
+    const matchedProfile = dynamicProfilesList?.find(p => p.id === userRow.id);
+    if (matchedProfile) {
+      let pLog = null;
+      let pXP = 300;
+      let pBadges = ['transit_champion'];
+      
+      if (userRow.id === 'me') {
+        pLog = currentLog;
+        pXP = activePoints;
+        pBadges = rewards.list.filter(b => b.unlocked).map(b => b.id);
+      } else if (userRow.id === 'krish') {
+        pXP = 500;
+        pBadges = ['transit_champion', 'green_diet', 'zero_waste', 'smart_home', 'clean_boiler'];
+      } else if (userRow.id === 'rahul') {
+        pXP = 400;
+        pBadges = ['transit_champion', 'green_diet', 'zero_waste'];
+      } else {
+        // dynamic custom profile
+        const customPLogs = customLogsData?.[userRow.id] || [];
+        pLog = customPLogs.length > 0 ? customPLogs[0] : null;
+        pXP = 300;
+        pBadges = ['transit_champion', 'zero_waste'];
+      }
+
       setSelectedUser({
-        id: 'me',
+        id: userRow.id,
         name: userRow.name,
-        subtitle: activeProfile === 'me' ? 'Your Active Sandbox' : `${activeProfile.toUpperCase()} Profile`,
+        avatar: userRow.avatar,
+        subtitle: userRow.id === activeProfile ? 'Active Session' : 'Sandbox User Profile',
         score: userRow.score,
-        xp: activePoints,
+        xp: pXP,
         traits: {
-          diet: currentLog?.inputs?.diet ? currentLog.inputs.diet.charAt(0).toUpperCase() + currentLog.inputs.diet.slice(1) : 'Omnivore',
-          transport: currentLog?.inputs?.transport ? (currentLog.inputs.transport === 'walk/bicycle' ? 'Walk / Bicycle' : currentLog.inputs.transport === 'public' ? 'Public' : 'Private') : 'Private',
-          vehicle: currentLog?.inputs?.vehicleType ? currentLog.inputs.vehicleType.charAt(0).toUpperCase() + currentLog.inputs.vehicleType.slice(1) : 'Petrol',
-          heating: currentLog?.inputs?.heatingEnergy ? currentLog.inputs.heatingEnergy.charAt(0).toUpperCase() + currentLog.inputs.heatingEnergy.slice(1) : 'Gas',
-          efficiency: currentLog?.inputs?.energyEfficiency || 'Sometimes',
-          airTravel: currentLog?.inputs?.airTravel ? currentLog.inputs.airTravel.charAt(0).toUpperCase() + currentLog.inputs.airTravel.slice(1) : 'Rarely',
-          recycling: currentLog?.inputs?.recycling || []
+          diet: pLog?.inputs?.diet ? pLog.inputs.diet.charAt(0).toUpperCase() + pLog.inputs.diet.slice(1) : 'Omnivore',
+          transport: pLog?.inputs?.transport ? (pLog.inputs.transport === 'walk/bicycle' ? 'Walk / Bicycle' : pLog.inputs.transport === 'public' ? 'Public' : 'Private') : 'Private',
+          vehicle: pLog?.inputs?.vehicleType ? pLog.inputs.vehicleType.charAt(0).toUpperCase() + pLog.inputs.vehicleType.slice(1) : 'Petrol',
+          heating: pLog?.inputs?.heatingEnergy ? pLog.inputs.heatingEnergy.charAt(0).toUpperCase() + pLog.inputs.heatingEnergy.slice(1) : 'Gas',
+          efficiency: pLog?.inputs?.energyEfficiency || 'Sometimes',
+          airTravel: pLog?.inputs?.airTravel ? pLog.inputs.airTravel.charAt(0).toUpperCase() + pLog.inputs.airTravel.slice(1) : 'Rarely',
+          recycling: pLog?.inputs?.recycling || []
         },
-        badges: rewards.list.filter(b => b.unlocked).map(b => b.id)
+        badges: pBadges
       });
     } else {
       // Find matching benchmark static profile
@@ -232,6 +271,7 @@ export default function LeaderboardRewards({
       if (staticProfile) {
         setSelectedUser({
           id: userRow.id,
+          avatar: userRow.avatar,
           ...staticProfile
         });
       } else {
@@ -239,6 +279,7 @@ export default function LeaderboardRewards({
         setSelectedUser({
           id: userRow.id,
           name: userRow.name,
+          avatar: userRow.avatar,
           subtitle: 'Sustainable Peer',
           score: userRow.score,
           xp: 200,
@@ -269,45 +310,30 @@ export default function LeaderboardRewards({
       {/* Profile Switcher Card */}
       <div className="glass-card p-md rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-md border-primary/20 bg-secondary-container/10">
         <div className="flex items-center gap-md">
-          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">
-            {activeProfile === 'me' ? 'Y' : activeProfile[0].toUpperCase()}
-          </div>
+          <ProfileAvatar 
+            avatar={dynamicProfilesList.find(p => p.id === activeProfile)?.avatar || profileAvatar} 
+            className="w-12 h-12" 
+          />
           <div>
             <h3 className="font-headline-md text-headline-md font-bold text-primary">Active Sandbox Profile</h3>
             <p className="font-body-sm text-on-surface-variant">Switch accounts to test dynamic calculators, badges, and recommendations.</p>
           </div>
         </div>
         <div className="flex items-center gap-sm flex-wrap">
-          <button 
-            onClick={() => setActiveProfile('me')}
-            className={`px-lg py-sm rounded-full font-label-md transition-all duration-200 ${
-              activeProfile === 'me' 
-                ? 'bg-primary text-on-primary shadow-sm font-bold scale-105' 
-                : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
-            }`}
-          >
-            You (Guest/Auth)
-          </button>
-          <button 
-            onClick={() => setActiveProfile('krish')}
-            className={`px-lg py-sm rounded-full font-label-md transition-all duration-200 ${
-              activeProfile === 'krish' 
-                ? 'bg-primary text-on-primary shadow-sm font-bold scale-105' 
-                : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
-            }`}
-          >
-            Krish (EV, Solar)
-          </button>
-          <button 
-            onClick={() => setActiveProfile('rahul')}
-            className={`px-lg py-sm rounded-full font-label-md transition-all duration-200 ${
-              activeProfile === 'rahul' 
-                ? 'bg-primary text-on-primary shadow-sm font-bold scale-105' 
-                : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
-            }`}
-          >
-            Rahul (Transit, Veg)
-          </button>
+          {dynamicProfilesList.map(profile => (
+            <button 
+              key={profile.id}
+              onClick={() => setActiveProfile(profile.id)}
+              className={`flex items-center gap-xs px-md py-sm rounded-full font-label-md transition-all duration-200 ${
+                activeProfile === profile.id 
+                  ? 'bg-primary text-on-primary shadow-sm font-bold scale-105' 
+                  : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
+              }`}
+            >
+              <ProfileAvatar avatar={profile.avatar} className="w-5 h-5 text-[10px]" />
+              <span>{profile.name}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -327,10 +353,7 @@ export default function LeaderboardRewards({
 
             <div className="flex flex-col gap-sm">
               {leaderboard.map((user, idx) => {
-                const isCurrentActiveRow = 
-                  (activeProfile === 'me' && (user.id === 'guest_user' || user.isCurrentUser)) ||
-                  (activeProfile === 'krish' && user.id === 'b_krish') ||
-                  (activeProfile === 'rahul' && user.id === 'b_rahul');
+                const isCurrentActiveRow = activeProfile === user.id;
 
                 let rankBadgeColor = 'text-outline';
                 if (idx === 0) rankBadgeColor = 'text-amber-500';
@@ -349,9 +372,7 @@ export default function LeaderboardRewards({
                   >
                     <div className="flex items-center gap-md min-w-0">
                       <span className={`font-bold w-6 text-center ${rankBadgeColor}`}>{idx + 1}</span>
-                      <div className="w-9 h-9 rounded-full bg-secondary-container flex items-center justify-center text-lg">
-                        {isCurrentActiveRow && activeProfile === 'me' ? profileAvatar : (user.name ? user.name.slice(0, 2).toUpperCase() : 'AN')}
-                      </div>
+                      <ProfileAvatar avatar={user.avatar || (user.name ? user.name.slice(0, 2).toUpperCase() : '👤')} className="w-9 h-9" />
                       <div className="min-w-0 flex flex-col">
                         <span className="text-[14px] truncate flex items-center gap-xs">
                           {user.name || 'Anonymous User'}
@@ -360,7 +381,7 @@ export default function LeaderboardRewards({
                           )}
                         </span>
                         <span className="text-[10px] text-on-surface-variant font-normal">
-                          {user.id === 'b1' || user.id === 'b2' || user.id === 'b3' || user.id === 'b4' || user.id === 'b5' || user.id === 'b_krish' || user.id === 'b_rahul' ? 'Benchmark Profile' : 'Local User'}
+                          {user.id === 'b1' || user.id === 'b2' || user.id === 'b3' || user.id === 'b4' || user.id === 'b5' || user.id === 'krish' || user.id === 'rahul' ? 'Benchmark Profile' : 'Local Sandbox User'}
                         </span>
                       </div>
                     </div>
@@ -457,9 +478,7 @@ export default function LeaderboardRewards({
             {/* Modal Header */}
             <div className="flex justify-between items-start border-b border-outline-variant/30 pb-md">
               <div className="flex items-center gap-md">
-                <div className="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-lg">
-                  {selectedUser.name.slice(0, 2).toUpperCase()}
-                </div>
+                <ProfileAvatar avatar={selectedUser.avatar} className="w-12 h-12" />
                 <div>
                   <h3 className="font-headline-md text-headline-md font-bold text-primary">{selectedUser.name}</h3>
                   <p className="text-[12px] text-on-surface-variant font-medium">{selectedUser.subtitle}</p>
@@ -491,7 +510,7 @@ export default function LeaderboardRewards({
                 </div>
 
                 {/* Score Comparison visualization */}
-                {selectedUser.id !== 'me' && (
+                {selectedUser.id !== activeProfile && (
                   <div className="pt-sm border-t border-outline-variant/30">
                     <div className="flex justify-between text-[11px] text-on-surface-variant mb-1">
                       <span>{selectedUser.name}'s Score</span>
@@ -542,6 +561,36 @@ export default function LeaderboardRewards({
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* AI Generated Avatar Section */}
+                  <div className="space-y-xs pt-xs border-t border-outline-variant/30">
+                    <label className="text-[11px] font-bold text-outline uppercase block">AI Avatar Generator (JioCinema / Hotstar DP Style)</label>
+                    <div className="flex gap-sm">
+                      <select
+                        value={aiStyle}
+                        onChange={(e) => setAiStyle(e.target.value)}
+                        className="bg-white border border-outline-variant rounded-md px-sm py-xs text-xs outline-none focus:ring-1 focus:ring-primary text-on-surface"
+                      >
+                        <option value="cosmic">Cosmic Space</option>
+                        <option value="nature">Neon Forest</option>
+                        <option value="cyber">Cyberpunk HUD</option>
+                        <option value="geometry">Crystal Geometry</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={handleGenerateAIAvatar}
+                        className="flex-1 bg-secondary text-white hover:bg-secondary/90 transition-all rounded-md px-md py-xs text-xs font-bold"
+                      >
+                        Generate AI DP
+                      </button>
+                    </div>
+                    {tempAvatar.startsWith('<svg') && (
+                      <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-xs mt-1">
+                        <span className="material-symbols-outlined text-xs">done</span>
+                        AI generated avatar active!
+                      </div>
+                    )}
                   </div>
 
                   {/* Carbon Goal field */}
@@ -617,37 +666,41 @@ export default function LeaderboardRewards({
 
             {/* Modal Footer */}
             <div className="flex justify-end gap-sm border-t border-outline-variant/30 pt-md mt-sm">
-              {selectedUser.id === 'me' && activeProfile === 'me' && (
-                isEditingProfile ? (
-                  <>
+              {(() => {
+                const isEditableProfile = dynamicProfilesList.some(p => p.id === selectedUser.id);
+                const matchedProfileObj = dynamicProfilesList.find(p => p.id === selectedUser.id);
+                return isEditableProfile && (
+                  isEditingProfile ? (
+                    <>
+                      <button 
+                        onClick={() => setIsEditingProfile(false)}
+                        className="px-md py-sm border border-outline-variant hover:bg-surface-container rounded-lg font-label-md transition-all text-xs"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        onClick={handleSaveProfileChange}
+                        className="px-md py-sm bg-primary text-on-primary rounded-lg font-label-md hover:opacity-90 active:scale-95 transition-all text-xs font-bold"
+                      >
+                        Save Changes
+                      </button>
+                    </>
+                  ) : (
                     <button 
-                      onClick={() => setIsEditingProfile(false)}
-                      className="px-md py-sm border border-outline-variant hover:bg-surface-container rounded-lg font-label-md transition-all text-xs"
+                      onClick={() => {
+                        setTempName(matchedProfileObj?.name || selectedUser.name);
+                        setTempAvatar(matchedProfileObj?.avatar || selectedUser.avatar);
+                        setTempGoal(matchedProfileObj?.goal || 1500);
+                        setIsEditingProfile(true);
+                      }}
+                      className="px-md py-sm border border-primary/30 text-primary hover:bg-primary/5 rounded-lg font-label-md transition-all text-xs font-bold flex items-center gap-xs"
                     >
-                      Cancel
+                      <span className="material-symbols-outlined text-sm">edit</span>
+                      Edit Profile
                     </button>
-                    <button 
-                      onClick={handleSaveProfileChange}
-                      className="px-md py-sm bg-primary text-on-primary rounded-lg font-label-md hover:opacity-90 active:scale-95 transition-all text-xs font-bold"
-                    >
-                      Save Changes
-                    </button>
-                  </>
-                ) : (
-                  <button 
-                    onClick={() => {
-                      setTempName(profileName);
-                      setTempAvatar(profileAvatar);
-                      setTempGoal(profileGoal);
-                      setIsEditingProfile(true);
-                    }}
-                    className="px-md py-sm border border-primary/30 text-primary hover:bg-primary/5 rounded-lg font-label-md transition-all text-xs font-bold flex items-center gap-xs"
-                  >
-                    <span className="material-symbols-outlined text-sm">edit</span>
-                    Edit Profile
-                  </button>
-                )
-              )}
+                  )
+                );
+              })()}
               <button 
                 onClick={() => { setSelectedUser(null); setIsEditingProfile(false); }}
                 className="px-lg py-sm bg-secondary text-on-secondary rounded-lg font-label-md hover:opacity-90 active:scale-95 transition-all text-xs"
