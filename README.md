@@ -52,6 +52,9 @@ Designed with a premium Material 3 light-green aesthetic, the application featur
 ### 6. AI Sustainability Coach
 - Interactive chatbot with personalized system prompts that adjust greetings and suggestions based on the active profile's habits. Offers quick-reply suggestions for recycling, goals, and transport.
 
+### 7. Community Spotlight & Demo Showcase
+- Integrated interactive LinkedIn live post embed showcasing demo video updates, community statistics, and social feedback right from the public landing page.
+
 ---
 
 ## 🧮 OLS Model Coefficients

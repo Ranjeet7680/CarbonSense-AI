@@ -673,6 +673,64 @@ export default function App() {
             </div>
           </section>
 
+          {/* Community Spotlight & LinkedIn Demo Showcase */}
+          <section id="demo" className="py-2xl bg-surface-container-low">
+            <div className="max-w-container-max mx-auto px-lg">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl items-center bg-surface p-xl md:p-2xl rounded-[32px] border border-outline-variant relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2"></div>
+                
+                <div className="lg:col-span-6 flex flex-col gap-lg relative z-10">
+                  <div className="inline-flex items-center gap-xs px-md py-xs bg-secondary-container text-on-secondary-container rounded-full w-fit font-label-md text-label-md">
+                    <span className="material-symbols-outlined text-sm">share</span>
+                    LIVE DEMO SHOWCASE
+                  </div>
+                  <h2 className="font-headline-xl text-headline-xl lg:text-[40px] lg:leading-[48px] text-on-surface font-bold">
+                    See CarbonSense AI in <span className="text-secondary">Action!</span>
+                  </h2>
+                  <p className="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+                    Discover how our AI-powered carbon emission calculator and reward ecosystem drives meaningful lifestyle shifts. Check out the community showcase update and join the global movement for a sustainable tomorrow.
+                  </p>
+                  <div className="flex flex-col gap-sm">
+                    <div className="flex items-center gap-sm font-label-md text-label-md text-on-surface-variant">
+                      <span className="material-symbols-outlined text-emerald-600">check_circle</span>
+                      Interactive dashboard highlights & metrics
+                    </div>
+                    <div className="flex items-center gap-sm font-label-md text-label-md text-on-surface-variant">
+                      <span className="material-symbols-outlined text-emerald-600">check_circle</span>
+                      Gamified rewards & social leaderboards
+                    </div>
+                    <div className="flex items-center gap-sm font-label-md text-label-md text-on-surface-variant">
+                      <span className="material-symbols-outlined text-emerald-600">check_circle</span>
+                      AI Coach tailored offsets & recommendations
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-6 flex justify-center items-center relative z-10 w-full">
+                  <div className="w-full max-w-[504px] overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest shadow-xl transition-all hover:shadow-2xl">
+                    <div className="p-sm bg-surface-container-high border-b border-outline-variant flex items-center justify-between">
+                      <div className="flex items-center gap-xs">
+                        <span className="w-3 h-3 rounded-full bg-error"></span>
+                        <span className="w-3 h-3 rounded-full bg-tertiary-fixed-dim"></span>
+                        <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                      </div>
+                      <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">LinkedIn Spotlight</span>
+                      <span className="material-symbols-outlined text-on-surface-variant text-md">public</span>
+                    </div>
+                    <iframe 
+                      src="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7470379385959890944?compact=1" 
+                      height="399" 
+                      className="w-full"
+                      style={{ border: 'none', minHeight: '399px' }} 
+                      allowFullScreen={true}
+                      title="Embedded post"
+                    ></iframe>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* CTA Section */}
           <section id="cta" className="py-2xl relative">
             <div className="max-w-container-max mx-auto px-lg">
