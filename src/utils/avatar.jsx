@@ -44,7 +44,7 @@ export function sanitizeSvg(svgString) {
 export function ProfileAvatar({ avatar, className = "w-12 h-12" }) {
   if (!avatar) return <span className={`text-2xl flex items-center justify-center rounded-full bg-surface-container-high ${className}`}>👤</span>;
   
-  if (avatar.startsWith('<svg')) {
+  if (avatar.trim().startsWith('<svg')) {
     const safeSvg = sanitizeSvg(avatar);
     return (
       <div 
