@@ -1,0 +1,7 @@
+/* index.css - System styles migrated to Tailwind CSS CDN classes. */
+
+html, body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}

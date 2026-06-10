@@ -1,0 +1,84 @@
+{
+  "intercept": 1065.4816363664675,
+  "numerical_coefficients": {
+    "Monthly Grocery Bill": 0.9507735204818459,
+    "Vehicle Monthly Distance Km": 0.20546845179329765,
+    "Waste Bag Weekly Count": 82.77523343568267,
+    "How Long TV PC Daily Hour": 2.8481744096263704,
+    "How Many New Clothes Monthly": 13.599289670430325,
+    "How Long Internet Daily Hour": 6.950168309412352
+  },
+  "categorical_coefficients": {
+    "Body Type": {
+      "obese": 297.57978039420914,
+      "overweight": 81.12956805963321,
+      "normal": -126.68835103867617,
+      "underweight": -250.01065271536612
+    },
+    "Sex": {
+      "female": -166.79012966924915,
+      "male": 166.79012966924913
+    },
+    "Diet": {
+      "omnivore": 96.24936409005032,
+      "vegetarian": -38.64448630499741,
+      "pescatarian": 7.353389871151502,
+      "vegan": -65.3566033216472
+    },
+    "How Often Shower": {
+      "twice a day": 12.170926091703643,
+      "more frequently": 20.143922276076253,
+      "daily": -11.03411233752494,
+      "less frequently": -21.00560795688595
+    },
+    "Heating Energy Source": {
+      "coal": 205.4954724430893,
+      "wood": 10.394701276995724,
+      "natural gas": 6.517783569682495,
+      "electricity": -220.4673105932052
+    },
+    "Transport": {
+      "private": 32.48308696653216,
+      "public": -83.6143771278493,
+      "walk/bicycle": 50.215494113659595
+    },
+    "Vehicle Type": {
+      "diesel": 224.9029683145606,
+      "petrol": 829.4442094964747,
+      "lpg": 346.12267096178454,
+      "hybrid": -228.28825551036394,
+      "electric": -1036.4801584227318,
+      "None": -32.483086966532056
+    },
+    "Social Activity": {
+      "often": 85.48377634767688,
+      "sometimes": -9.547961321052602,
+      "never": -75.03617706943344
+    },
+    "Frequency of Traveling by Air": {
+      "very frequently": 761.3339716238314,
+      "frequently": 110.9018740064982,
+      "rarely": -358.2473569527005,
+      "never": -530.8092433171678
+    },
+    "Energy efficiency": {
+      "No": 27.429537971059684,
+      "Sometimes": 0.11670413618300954,
+      "Yes": -27.141595365276075
+    }
+  },
+  "recycling_coefficients": {
+    "Paper": -148.54929971411482,
+    "Plastic": -64.97764740920708,
+    "Glass": -91.46481070973456,
+    "Metal": -129.2467324367703
+  },
+  "cooking_coefficients": {
+    "Stove": 26.690086896890055,
+    "Oven": 37.61348905892366,
+    "Microwave": 12.988013652894033,
+    "Grill": 20.30484582226152,
+    "Airfryer": 20.30484582226152
+  },
+  "mean_emission": 2269.1473
+}
