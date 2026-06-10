@@ -12,16 +12,28 @@ export default function AICoach({ currentLog }) {
     : -12;
   const pctLabel = pctDiff < 0 ? `${pctDiff}% CO₂` : `+${pctDiff}% CO₂`;
 
-  const [messages, setMessages] = useState([
-    {
-      id: 'welcome',
-      sender: 'ai',
-      text: "Hello! I'm your CarbonSense AI Coach. Ready to make a positive impact today? I can help you track emissions, find eco-friendly alternatives, or set new sustainability goals.",
-      timestamp: 'Just now'
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    let profileGreeting = "Hello! I'm your CarbonSense AI Coach. Ready to make a positive impact today? I can help you track emissions, find eco-friendly alternatives, or set new sustainability goals.";
+    if (inputs) {
+      if (inputs.vehicleType === 'electric' && inputs.heatingEnergy === 'electricity') {
+        profileGreeting = "Welcome, Krish! I see you commute in an electric vehicle and power your home using solar electricity. Outstanding job! Let's discuss ways to optimize your lifestyle or offset your remaining 820 kg CO₂ emissions.";
+      } else if (inputs.diet === 'vegetarian' && inputs.transport === 'public') {
+        profileGreeting = "Welcome, Rahul! I see you choose public transit and follow a vegetarian diet. You are making highly sustainable choices! Let's explore how to lower your footprint even further from 1,120 kg CO₂.";
+      }
+    }
+    setMessages([
+      {
+        id: 'welcome',
+        sender: 'ai',
+        text: profileGreeting,
+        timestamp: 'Just now'
+      }
+    ]);
+  }, [inputs]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

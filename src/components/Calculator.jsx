@@ -36,6 +36,39 @@ export default function Calculator({ onSave, initialData }) {
   const [inputs, setInputs] = useState(initialData || DEFAULT_INPUTS);
   const [score, setScore] = useState(0);
 
+  // Synchronize form state reactively when sandbox profile changes
+  useEffect(() => {
+    if (initialData) {
+      setInputs(initialData);
+      
+      // Sync quick mode inputs
+      if (initialData.transport === 'private' && initialData.vehicleType === 'petrol') {
+        setQuickTransport('petrol');
+      } else if (initialData.transport === 'private' && initialData.vehicleType === 'electric') {
+        setQuickTransport('ev');
+      } else if (initialData.transport === 'public') {
+        setQuickTransport('public');
+      } else {
+        setQuickTransport('bike');
+      }
+      setQuickDistance(Math.round((initialData.vehicleDistance || 0) / 4.3));
+      
+      if (initialData.diet === 'omnivore') {
+        setQuickDiet('meat');
+      } else if (initialData.diet === 'pescatarian') {
+        setQuickDiet('balanced');
+      } else if (initialData.diet === 'vegetarian') {
+        setQuickDiet('vegetarian');
+      } else {
+        setQuickDiet('vegan');
+      }
+      setQuickRecycling(initialData.recycling && initialData.recycling.length > 0);
+      setQuickElectricity(initialData.energyEfficiency === 'Yes' ? 120 : initialData.energyEfficiency === 'Sometimes' ? 220 : 320);
+    } else {
+      setInputs(DEFAULT_INPUTS);
+    }
+  }, [initialData]);
+
   // Quick Mode Specific States
   const [quickTransport, setQuickTransport] = useState('public'); // 'petrol', 'ev', 'public', 'bike'
   const [quickDistance, setQuickDistance] = useState(50); // weekly km

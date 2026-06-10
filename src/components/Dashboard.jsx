@@ -10,7 +10,7 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetTotal = 0 }) {
+export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetTotal = 0, rewards: rewardsProp }) {
   const latestScore = currentLog ? currentLog.score : 0;
   const inputs = currentLog ? currentLog.inputs : null;
   const netEmissions = Math.max(0, latestScore - offsetTotal);
@@ -191,64 +191,8 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
     return recs.sort((a, b) => b.saving - a.saving);
   }, [inputs]);
 
-  // 3. Rewards & Achievements System
-  const rewards = useMemo(() => {
-    const list = [
-      {
-        id: 'transit_champion',
-        title: 'Transit Champion',
-        desc: 'Choose EV, public transport, or active biking/walking.',
-        unlocked: inputs ? (inputs.transport === 'walk/bicycle' || inputs.vehicleType === 'electric' || inputs.transport === 'public') : false,
-        icon: 'directions_run',
-        color: 'bg-emerald-500'
-      },
-      {
-        id: 'green_diet',
-        title: 'Plant Power',
-        desc: 'Choose a vegetarian or vegan carbon profile.',
-        unlocked: inputs ? (inputs.diet === 'vegan' || inputs.diet === 'vegetarian') : false,
-        icon: 'local_dining',
-        color: 'bg-green-600'
-      },
-      {
-        id: 'zero_waste',
-        title: 'Recycling Pro',
-        desc: 'Implement sorted recycling practices.',
-        unlocked: inputs ? (inputs.recycling && inputs.recycling.length > 0) : false,
-        icon: 'recycling',
-        color: 'bg-teal-500'
-      },
-      {
-        id: 'smart_home',
-        title: 'Power Saver',
-        desc: 'Enable sometimes/yes for home energy efficiency.',
-        unlocked: inputs ? (inputs.energyEfficiency === 'Yes' || inputs.energyEfficiency === 'Sometimes') : false,
-        icon: 'bolt',
-        color: 'bg-amber-500'
-      },
-      {
-        id: 'clean_boiler',
-        title: 'Clean Heating',
-        desc: 'Switch fuel to electricity or natural gas.',
-        unlocked: inputs ? (inputs.heatingEnergy === 'electricity' || inputs.heatingEnergy === 'natural gas') : false,
-        icon: 'heat_pump',
-        color: 'bg-purple-600'
-      },
-      {
-        id: 'neutralizer',
-        title: 'Net-Zero Hero',
-        desc: 'Neutralize your carbon footprint with offsets.',
-        unlocked: latestScore > 0 && offsetTotal >= latestScore,
-        icon: 'workspace_premium',
-        color: 'bg-yellow-500'
-      }
-    ];
-
-    const unlockedCount = list.filter(r => r.unlocked).length;
-    const points = unlockedCount * 100;
-
-    return { list, points, unlockedCount };
-  }, [inputs, latestScore, offsetTotal]);
+  // 3. Rewards & Achievements System (using synced parent prop)
+  const rewards = rewardsProp;
 
   // Baseline comparison
   const natAverage = Math.round(coefficients.mean_emission);
@@ -429,7 +373,10 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
           </div>
 
           {/* Rewards & Achievements Section */}
-          <div className="glass-card p-lg rounded-2xl flex flex-col gap-md">
+          <div 
+            onClick={() => onNavigate('rewards')}
+            className="glass-card p-lg rounded-2xl flex flex-col gap-md cursor-pointer hover:shadow-md transition-all border border-outline-variant/30 hover:border-primary/30"
+          >
             <div className="flex justify-between items-center flex-wrap gap-xs">
               <div className="flex items-center gap-xs">
                 <span className="material-symbols-outlined text-amber-500 font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
@@ -487,6 +434,23 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
               </div>
             )}
           </div>
+
+          {/* Dataset Analysis Preview Card */}
+          <div 
+            onClick={() => onNavigate('analysis')}
+            className="glass-card p-lg rounded-2xl flex items-center justify-between gap-md cursor-pointer hover:shadow-md transition-all border border-outline-variant/30 hover:border-primary/30 bg-primary/5"
+          >
+            <div className="flex items-center gap-md">
+              <div className="p-sm bg-primary text-on-primary rounded-lg flex items-center justify-center">
+                <span className="material-symbols-outlined text-white">bar_chart</span>
+              </div>
+              <div className="text-left">
+                <h4 className="font-headline-md text-[14px] font-bold text-primary">Dataset Insights & Analytics</h4>
+                <p className="text-[11px] text-on-surface-variant leading-tight mt-0.5">Explore distribution curves and carbon drivers over 10,000 observations.</p>
+              </div>
+            </div>
+            <span className="material-symbols-outlined text-outline text-sm">arrow_forward</span>
+          </div>
         </div>
 
         {/* Right Columns (4/12) */}
@@ -543,10 +507,16 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
           </div>
 
           {/* Leaderboard */}
-          <div className="glass-card p-lg rounded-2xl flex flex-col gap-md">
-            <div className="flex items-center gap-sm">
-              <span className="material-symbols-outlined text-amber-500" style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
-              <h3 className="font-headline-md text-headline-md text-on-surface">Green Leaderboard</h3>
+          <div 
+            onClick={() => onNavigate('rewards')}
+            className="glass-card p-lg rounded-2xl flex flex-col gap-md cursor-pointer hover:shadow-md transition-all border border-outline-variant/30 hover:border-primary/30"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-sm">
+                <span className="material-symbols-outlined text-amber-500" style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
+                <h3 className="font-headline-md text-headline-md text-on-surface">Green Leaderboard</h3>
+              </div>
+              <span className="material-symbols-outlined text-outline text-sm">arrow_forward</span>
             </div>
             
             <div className="flex flex-col gap-sm">

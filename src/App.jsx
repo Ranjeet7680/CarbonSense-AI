@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { 
@@ -21,6 +21,8 @@ import History from './components/History';
 import Offsets from './components/Offsets';
 import AICoach from './components/AICoach';
 import LearningHub from './components/LearningHub';
+import LeaderboardRewards from './components/LeaderboardRewards';
+import DatasetAnalysis from './components/DatasetAnalysis';
 
 const STATIC_BENCHMARKS = [
   { id: 'b1', name: 'Alba Green (Vegan, Solar)', score: 712, isBenchmark: true },
@@ -32,6 +34,64 @@ const STATIC_BENCHMARKS = [
   { id: 'b5', name: 'Marcus Steel (SUV, Coal Heat)', score: 4536, isBenchmark: true }
 ];
 
+export const calculateRewards = (inputs, latestScore, offsetTotal) => {
+  const list = [
+    {
+      id: 'transit_champion',
+      title: 'Transit Champion',
+      desc: 'Unlock by walking/biking, driving an electric car, or taking public transit.',
+      unlocked: inputs ? (inputs.transport === 'walk/bicycle' || inputs.vehicleType === 'electric' || inputs.transport === 'public') : false,
+      icon: 'directions_run',
+      color: 'bg-emerald-500'
+    },
+    {
+      id: 'green_diet',
+      title: 'Plant Power',
+      desc: 'Unlock by adopting a vegan or vegetarian diet.',
+      unlocked: inputs ? (inputs.diet === 'vegan' || inputs.diet === 'vegetarian') : false,
+      icon: 'local_dining',
+      color: 'bg-green-600'
+    },
+    {
+      id: 'zero_waste',
+      title: 'Recycling Pro',
+      desc: 'Unlock by implementing sorted recycling habits.',
+      unlocked: inputs ? (inputs.recycling && inputs.recycling.length > 0) : false,
+      icon: 'recycling',
+      color: 'bg-teal-500'
+    },
+    {
+      id: 'smart_home',
+      title: 'Power Saver',
+      desc: 'Unlock by enabling home energy efficiency improvements.',
+      unlocked: inputs ? (inputs.energyEfficiency === 'Yes' || inputs.energyEfficiency === 'Sometimes') : false,
+      icon: 'bolt',
+      color: 'bg-amber-500'
+    },
+    {
+      id: 'clean_boiler',
+      title: 'Clean Heating',
+      desc: 'Unlock by choosing electricity or natural gas heating.',
+      unlocked: inputs ? (inputs.heatingEnergy === 'electricity' || inputs.heatingEnergy === 'natural gas') : false,
+      icon: 'heat_pump',
+      color: 'bg-purple-600'
+    },
+    {
+      id: 'neutralizer',
+      title: 'Net-Zero Hero',
+      desc: 'Unlock by fully neutralizing your carbon footprint with offsets.',
+      unlocked: latestScore > 0 && offsetTotal >= latestScore,
+      icon: 'workspace_premium',
+      color: 'bg-yellow-500'
+    }
+  ];
+
+  const unlockedCount = list.filter(r => r.unlocked).length;
+  const points = unlockedCount * 100;
+
+  return { list, points, unlockedCount };
+};
+
 export default function App() {
   const [user, setUser] = useState(null); // null (not logged in), 'guest', or User object
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -41,6 +101,82 @@ export default function App() {
   const [leaderboard, setLeaderboard] = useState(STATIC_BENCHMARKS);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
+  // Sandbox active profile state
+  const [activeProfile, setActiveProfile] = useState('me'); // 'me', 'krish', 'rahul'
+
+  // Custom user profile states
+  const [profileName, setProfileName] = useState(localStorage.getItem('carbon_profile_name') || 'Eco Warrior');
+  const [profileAvatar, setProfileAvatar] = useState(localStorage.getItem('carbon_profile_avatar') || '🌳');
+  const [profileGoal, setProfileGoal] = useState(parseInt(localStorage.getItem('carbon_profile_goal') || '1500'));
+
+  useEffect(() => {
+    localStorage.setItem('carbon_profile_name', profileName);
+    localStorage.setItem('carbon_profile_avatar', profileAvatar);
+    localStorage.setItem('carbon_profile_goal', profileGoal.toString());
+  }, [profileName, profileAvatar, profileGoal]);
+
+  // In-memory states for mock profiles so they are fully reactive and editable!
+  const [krishLogs, setKrishLogs] = useState([{
+    id: 'k_log1',
+    timestamp: Date.now(),
+    score: 820,
+    inputs: {
+      vehicleDistance: 500,
+      transport: 'private',
+      vehicleType: 'electric',
+      airTravel: 'rarely',
+      diet: 'vegan',
+      heatingEnergy: 'electricity',
+      energyEfficiency: 'Yes',
+      recycling: ['Paper', 'Plastic', 'Glass', 'Metal'],
+      groceryBill: 120,
+      wasteBagCount: 1,
+      tvPcHours: 3,
+      newClothes: 1,
+      internetHours: 4,
+      bodyType: 'normal',
+      sex: 'male',
+      showerFrequency: 'daily',
+      socialActivity: 'sometimes',
+      cooking: ['Stove', 'Microwave']
+    }
+  }]);
+
+  const [krishOffsets, setKrishOffsets] = useState([
+    { id: 'k_o1', type: 'Reforestation', amountKg: 150, date: '2026-05-15', provider: 'TreeNation', cost: 15, timestamp: Date.now() - 86400000 * 25 },
+    { id: 'k_o2', type: 'Community Solar', amountKg: 200, date: '2026-06-01', provider: 'ClearEnergy', cost: 20, timestamp: Date.now() - 86400000 * 9 }
+  ]);
+
+  const [rahulLogs, setRahulLogs] = useState([{
+    id: 'r_log1',
+    timestamp: Date.now(),
+    score: 1120,
+    inputs: {
+      vehicleDistance: 0,
+      transport: 'public',
+      vehicleType: 'None',
+      airTravel: 'rarely',
+      diet: 'vegetarian',
+      heatingEnergy: 'natural gas',
+      energyEfficiency: 'Sometimes',
+      recycling: ['Paper', 'Plastic'],
+      groceryBill: 180,
+      wasteBagCount: 2,
+      tvPcHours: 4,
+      newClothes: 2,
+      internetHours: 5,
+      bodyType: 'normal',
+      sex: 'male',
+      showerFrequency: 'daily',
+      socialActivity: 'often',
+      cooking: ['Stove', 'Oven']
+    }
+  }]);
+
+  const [rahulOffsets, setRahulOffsets] = useState([
+    { id: 'r_o1', type: 'Wind Power', amountKg: 100, date: '2026-05-20', provider: 'GoldStandard', cost: 10, timestamp: Date.now() - 86400000 * 20 }
+  ]);
+
   // 'landing' by default when user is null, or can switch to 'auth'
   const [authView, setAuthView] = useState(false); // true shows auth screen, false shows landing page
 
@@ -124,59 +260,46 @@ export default function App() {
     }
   }, [user]);
 
-  // Compute offset total
-  const offsetTotal = offsets.reduce((acc, curr) => acc + (curr.amountKg || 0), 0);
+  // Compute overridden active variables
+  const activeLogs = activeProfile === 'krish' ? krishLogs : activeProfile === 'rahul' ? rahulLogs : logs;
+  const activeOffsets = activeProfile === 'krish' ? krishOffsets : activeProfile === 'rahul' ? rahulOffsets : offsets;
+  const activeOffsetTotal = activeOffsets.reduce((acc, curr) => acc + (curr.amountKg || 0), 0);
+  const activeCurrentLog = activeLogs.length > 0 ? activeLogs[0] : null;
 
-  // Sync / Listen to Leaderboard
-  useEffect(() => {
-    if (user && user !== 'guest') {
-      const qLeaderboard = query(
-        collection(db, 'leaderboard'),
-        orderBy('score', 'asc'),
-        limit(8)
-      );
+  const activeRewards = useMemo(() => {
+    return calculateRewards(
+      activeCurrentLog ? activeCurrentLog.inputs : null,
+      activeCurrentLog ? activeCurrentLog.score : 0,
+      activeOffsetTotal
+    );
+  }, [activeCurrentLog, activeOffsetTotal]);
 
-      const unsubscribe = onSnapshot(qLeaderboard, (snapshot) => {
-        const board = [];
-        snapshot.forEach((doc) => {
-          board.push({ id: doc.id, ...doc.data() });
-        });
+  // Compute dynamic leaderboard by merging static benchmarks and active logs
+  const dynamicLeaderboard = useMemo(() => {
+    const myLatestScore = logs.length > 0 ? logs[0].score : 0;
+    const krishLatestScore = krishLogs.length > 0 ? krishLogs[0].score : 820;
+    const rahulLatestScore = rahulLogs.length > 0 ? rahulLogs[0].score : 1120;
 
-        const merged = [...board];
-        STATIC_BENCHMARKS.forEach(bench => {
-          if (!merged.find(item => item.id === bench.id)) {
-            merged.push(bench);
-          }
-        });
-
-        const finalBoard = merged
-          .map(item => ({
-            ...item,
-            isCurrentUser: item.userId === user.uid
-          }))
-          .sort((a, b) => a.score - b.score)
-          .slice(0, 10);
-
-        setLeaderboard(finalBoard);
-      }, (err) => {
-        console.error(err);
-      });
-
-      return () => unsubscribe();
-    } else {
-      let board = [...STATIC_BENCHMARKS];
-      const localLogs = JSON.parse(localStorage.getItem('carbon_tracker_logs') || '[]');
-      if (localLogs.length > 0) {
-        board.push({
-          id: 'guest_user',
-          name: 'You (Guest)',
-          score: localLogs[0].score,
-          isCurrentUser: true
-        });
+    let board = leaderboard.map(item => {
+      if (item.id === 'b_krish') {
+        return { ...item, score: krishLatestScore, isCurrentUser: activeProfile === 'krish' };
       }
-      setLeaderboard(board.sort((a, b) => a.score - b.score));
-    }
-  }, [user, logs]);
+      if (item.id === 'b_rahul') {
+        return { ...item, score: rahulLatestScore, isCurrentUser: activeProfile === 'rahul' };
+      }
+      if (item.id === 'guest_user' || item.userId === user?.uid) {
+        return { 
+          ...item, 
+          name: activeProfile === 'me' ? profileName : item.name, 
+          score: myLatestScore || item.score, 
+          isCurrentUser: activeProfile === 'me' 
+        };
+      }
+      return { ...item, isCurrentUser: false };
+    });
+
+    return board.sort((a, b) => a.score - b.score);
+  }, [leaderboard, logs, krishLogs, rahulLogs, activeProfile, user, profileName]);
 
   // Migration logic
   const migrateGuestLogsToCloud = async (uid) => {
@@ -228,10 +351,22 @@ export default function App() {
 
   const handleSaveCalculation = async (inputs, score) => {
     const newLog = {
+      id: 'log_' + Date.now(),
       timestamp: Date.now(),
       inputs,
       score
     };
+
+    if (activeProfile === 'krish') {
+      setKrishLogs([newLog, ...krishLogs]);
+      setActiveView('dashboard');
+      return;
+    }
+    if (activeProfile === 'rahul') {
+      setRahulLogs([newLog, ...rahulLogs]);
+      setActiveView('dashboard');
+      return;
+    }
 
     if (user === 'guest') {
       const updatedLogs = [newLog, ...logs];
@@ -250,8 +385,23 @@ export default function App() {
   };
 
   const handleAddOffset = async (offsetRecord) => {
+    const newOffset = {
+      id: 'offset_' + Date.now(),
+      ...offsetRecord,
+      timestamp: Date.now()
+    };
+
+    if (activeProfile === 'krish') {
+      setKrishOffsets([newOffset, ...krishOffsets]);
+      return;
+    }
+    if (activeProfile === 'rahul') {
+      setRahulOffsets([newOffset, ...rahulOffsets]);
+      return;
+    }
+
     if (user === 'guest') {
-      const updatedOffsets = [offsetRecord, ...offsets];
+      const updatedOffsets = [newOffset, ...offsets];
       localStorage.setItem('carbon_tracker_offsets', JSON.stringify(updatedOffsets));
       setOffsets(updatedOffsets);
     } else {
@@ -265,6 +415,15 @@ export default function App() {
   };
 
   const handleDeleteLog = async (logId) => {
+    if (activeProfile === 'krish') {
+      setKrishLogs(krishLogs.filter(l => l.id !== logId));
+      return;
+    }
+    if (activeProfile === 'rahul') {
+      setRahulLogs(rahulLogs.filter(l => l.id !== logId));
+      return;
+    }
+
     if (user === 'guest') {
       const updatedLogs = logs.filter(l => l.id !== logId);
       localStorage.setItem('carbon_tracker_logs', JSON.stringify(updatedLogs));
@@ -564,14 +723,19 @@ export default function App() {
   }
 
   // Determine latest calculation log
-  const currentLog = logs.length > 0 ? logs[0] : null;
+  const currentLog = activeCurrentLog;
+  const logsToRender = activeLogs;
+  const offsetsToRender = activeOffsets;
+  const offsetTotalToRender = activeOffsetTotal;
+  const leaderboardToRender = dynamicLeaderboard;
+  const rewardsToRender = activeRewards;
 
   // Render Portal layout if authenticated / guest sandbox
   return (
     <div className="flex min-h-screen bg-background text-on-surface overflow-x-hidden">
       {/* Sidebar for Desktop */}
-      <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col bg-surface-container shadow-sm p-md gap-base z-50">
-        <div className="px-md py-lg flex items-center gap-3 border-b border-outline-variant/30 mb-md">
+      <aside className="hidden md:flex fixed left-0 top-0 h-screen w-64 flex-col bg-surface-container shadow-sm p-md gap-base z-50">
+        <div className="px-md py-lg flex items-center gap-3 border-b border-outline-variant/30">
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed">
             <img 
               alt="User Status" 
@@ -586,13 +750,29 @@ export default function App() {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1">
+        {/* Sandbox Profile Selector */}
+        <div className="px-md py-sm border-b border-outline-variant/30 mb-sm">
+          <label className="text-[9px] font-bold text-outline uppercase block mb-1">Active Sandbox Profile</label>
+          <select 
+            value={activeProfile}
+            onChange={(e) => setActiveProfile(e.target.value)}
+            className="w-full bg-surface-container-high border border-outline-variant rounded-md px-sm py-xs text-[11px] font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+          >
+            <option value="me">You (Guest/Auth)</option>
+            <option value="krish">Krish (EV, Solar)</option>
+            <option value="rahul">Rahul (Transit, Veg)</option>
+          </select>
+        </div>
+
+        <nav className="flex-1 space-y-1 overflow-y-auto">
           {[
             { view: 'dashboard', name: 'Dashboard', icon: 'dashboard' },
             { view: 'calculator', name: 'Carbon Tracker', icon: 'analytics' },
+            { view: 'rewards', name: 'Leaderboard & Rewards', icon: 'emoji_events' },
             { view: 'aiCoach', name: 'AI Coach', icon: 'psychology' },
             { view: 'learningHub', name: 'Learning Hub', icon: 'school' },
             { view: 'offsets', name: 'Carbon Offsets', icon: 'public' },
+            { view: 'analysis', name: 'Dataset Analysis', icon: 'bar_chart' },
             { view: 'history', name: 'History Logs', icon: 'insert_chart' }
           ].map(item => (
             <button 
@@ -612,12 +792,16 @@ export default function App() {
 
         <div className="mt-auto border-t border-outline-variant pt-md flex flex-col gap-md">
           <div className="flex items-center gap-md px-md">
-            <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container text-[14px]">
-              {user === 'guest' ? 'G' : (user.email ? user.email[0].toUpperCase() : 'U')}
+            <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-lg">
+              {activeProfile === 'me' ? profileAvatar : activeProfile === 'krish' ? '🚗' : '🚲'}
             </div>
             <div className="min-w-0">
-              <p className="font-label-md text-on-surface text-[13px] truncate">{user === 'guest' ? 'Guest User' : 'Authenticated'}</p>
-              <p className="text-[11px] text-on-surface-variant truncate">{user === 'guest' ? 'Sandbox data' : user.email}</p>
+              <p className="font-label-md text-on-surface text-[13px] truncate">
+                {activeProfile === 'me' ? profileName : activeProfile === 'krish' ? 'Krish (EV, Solar)' : 'Rahul (Transit, Veg)'}
+              </p>
+              <p className="text-[11px] text-on-surface-variant truncate">
+                {activeProfile === 'me' ? (user === 'guest' ? 'Guest Sandbox' : user.email) : 'Simulated Profile'}
+              </p>
             </div>
           </div>
           <button 
@@ -644,8 +828,17 @@ export default function App() {
           <h1 className="font-headline-lg text-primary font-bold">CarbonSense AI</h1>
         </div>
         <div className="flex items-center gap-xs">
+          <select 
+            value={activeProfile}
+            onChange={(e) => setActiveProfile(e.target.value)}
+            className="bg-secondary-container/80 border border-outline-variant/30 rounded-full px-sm py-xs text-[10px] font-bold text-on-secondary-container outline-none cursor-pointer max-w-[90px]"
+          >
+            <option value="me">You</option>
+            <option value="krish">Krish</option>
+            <option value="rahul">Rahul</option>
+          </select>
           <button 
-            onClick={() => alert("Stars Achievement Badge Level: Eco Explorer (Level 3)")} 
+            onClick={() => alert(`Stars Achievement Level: Level ${activeRewards.unlockedCount} ${activeRewards.unlockedCount >= 5 ? 'Eco Champion' : 'Eco Explorer'}`)} 
             className="material-symbols-outlined text-primary hover:bg-surface-container-low transition-colors p-2 rounded-full active:scale-95 duration-100"
           >
             stars
@@ -662,13 +855,15 @@ export default function App() {
       {/* Mobile Menu Drawer */}
       {isMobileMenuOpen && (
         <div className="fixed md:hidden top-16 left-0 right-0 bottom-16 bg-surface-container/95 backdrop-blur-lg z-35 p-lg flex flex-col justify-between border-b border-outline-variant">
-          <nav className="space-y-md">
+          <nav className="space-y-md overflow-y-auto">
             {[
               { view: 'dashboard', name: 'Dashboard', icon: 'dashboard' },
               { view: 'calculator', name: 'Carbon Tracker', icon: 'analytics' },
+              { view: 'rewards', name: 'Leaderboard & Rewards', icon: 'emoji_events' },
               { view: 'aiCoach', name: 'AI Coach', icon: 'psychology' },
               { view: 'learningHub', name: 'Learning Hub', icon: 'school' },
               { view: 'offsets', name: 'Carbon Offsets', icon: 'public' },
+              { view: 'analysis', name: 'Dataset Analysis', icon: 'bar_chart' },
               { view: 'history', name: 'History Logs', icon: 'insert_chart' }
             ].map(item => (
               <button
@@ -688,12 +883,16 @@ export default function App() {
           
           <div className="border-t border-outline-variant pt-md flex flex-col gap-md">
             <div className="flex items-center gap-md">
-              <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container">
-                {user === 'guest' ? 'G' : (user.email ? user.email[0].toUpperCase() : 'U')}
+              <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-lg">
+                {activeProfile === 'me' ? profileAvatar : activeProfile === 'krish' ? '🚗' : '🚲'}
               </div>
               <div>
-                <p className="font-label-md text-on-surface">{user === 'guest' ? 'Guest User' : 'Authenticated'}</p>
-                <p className="text-[11px] text-on-surface-variant">{user === 'guest' ? 'Sandbox data' : user.email}</p>
+                <p className="font-label-md text-on-surface">
+                  {activeProfile === 'me' ? profileName : activeProfile === 'krish' ? 'Krish (EV, Solar)' : 'Rahul (Transit, Veg)'}
+                </p>
+                <p className="text-[11px] text-on-surface-variant">
+                  {activeProfile === 'me' ? (user === 'guest' ? 'Guest Sandbox' : user.email) : 'Simulated Profile'}
+                </p>
               </div>
             </div>
             <button 
@@ -713,9 +912,10 @@ export default function App() {
           <div className="p-lg md:p-xl flex-1 flex flex-col">
             <Dashboard 
               currentLog={currentLog} 
-              leaderboard={leaderboard} 
+              leaderboard={leaderboardToRender} 
               onNavigate={setActiveView}
-              offsetTotal={offsetTotal}
+              offsetTotal={offsetTotalToRender}
+              rewards={rewardsToRender}
             />
           </div>
         )}
@@ -724,6 +924,24 @@ export default function App() {
             <Calculator 
               onSave={handleSaveCalculation} 
               initialData={currentLog ? currentLog.inputs : null}
+            />
+          </div>
+        )}
+        {activeView === 'rewards' && (
+          <div className="p-lg md:p-xl flex-1 flex flex-col">
+            <LeaderboardRewards 
+              activeProfile={activeProfile}
+              setActiveProfile={setActiveProfile}
+              leaderboard={leaderboardToRender}
+              rewards={rewardsToRender}
+              currentLog={currentLog}
+              offsetTotal={offsetTotalToRender}
+              profileName={profileName}
+              setProfileName={setProfileName}
+              profileAvatar={profileAvatar}
+              setProfileAvatar={setProfileAvatar}
+              profileGoal={profileGoal}
+              setProfileGoal={setProfileGoal}
             />
           </div>
         )}
@@ -742,14 +960,19 @@ export default function App() {
             <Offsets 
               grossEmissions={currentLog ? currentLog.score : 0} 
               onAddOffset={handleAddOffset} 
-              offsetTotal={offsetTotal}
+              offsetTotal={offsetTotalToRender}
             />
+          </div>
+        )}
+        {activeView === 'analysis' && (
+          <div className="p-lg md:p-xl flex-1 flex flex-col">
+            <DatasetAnalysis />
           </div>
         )}
         {activeView === 'history' && (
           <div className="p-lg md:p-xl flex-1 flex flex-col">
             <History 
-              logs={logs} 
+              logs={logsToRender} 
               onDeleteLog={handleDeleteLog}
             />
           </div>
