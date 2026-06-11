@@ -20,8 +20,15 @@ ChartJS.register(
   Legend
 );
 
-export default function DatasetAnalysis() {
+export default function DatasetAnalysis({ theme }) {
   const [activeTab, setActiveTab] = useState('Transport'); // Active categorical breakdown tab
+
+  const isCyberGreen = theme === 'cyber-green';
+  const isGold = theme === 'gold';
+  const isDarkNeon = theme === 'dark-neon';
+
+  const themePrimaryColor = isCyberGreen ? '#00ff66' : isGold ? '#bf953f' : isDarkNeon ? '#10b981' : '#154212';
+  const themeSecondaryColor = isCyberGreen ? '#00e676' : isGold ? '#bf953f' : isDarkNeon ? '#34d399' : '#3a6758';
 
   // 1. Prepare Histogram Chart Data
   const histogramChartData = useMemo(() => {
@@ -34,14 +41,14 @@ export default function DatasetAnalysis() {
         {
           label: 'Number of Observations',
           data: counts,
-          backgroundColor: '#3a6758', // Secondary green
-          hoverBackgroundColor: '#154212', // Primary dark green
+          backgroundColor: themeSecondaryColor, // Secondary green
+          hoverBackgroundColor: themePrimaryColor, // Primary dark green
           borderRadius: 6,
           borderWidth: 0
         }
       ]
     };
-  }, []);
+  }, [themePrimaryColor, themeSecondaryColor]);
 
   const histogramOptions = {
     responsive: true,
@@ -92,8 +99,8 @@ export default function DatasetAnalysis() {
           label: 'Average Emission (kg CO₂/month)',
           data: averages,
           backgroundColor: [
-            '#154212', // Dark green
-            '#3a6758', // Sage green
+            themePrimaryColor, // Primary
+            themeSecondaryColor, // Secondary
             '#ffe179', // Yellow
             '#72796e', // Slate
             '#ba1a1a', // Red/Crimson
@@ -104,7 +111,7 @@ export default function DatasetAnalysis() {
         }
       ]
     };
-  }, [activeTab]);
+  }, [activeTab, themePrimaryColor, themeSecondaryColor]);
 
   const categoricalOptions = {
     responsive: true,

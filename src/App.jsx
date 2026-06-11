@@ -42,6 +42,7 @@ export default function App() {
   const [offsets, setOffsets] = useState([]);
   const [leaderboard] = useState(STATIC_BENCHMARKS);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   
   // Sandbox active profile state
   const [activeProfile, setActiveProfile] = useState('me'); // 'me', 'krish', 'rahul' or custom profile ID
@@ -59,7 +60,7 @@ export default function App() {
     // Default preset profiles
     return [
       { id: 'me', name: 'Ranjeet', avatar: generateAIAvatarSvg('Ranjeet', 'warrior', 'minimalist', 'gradient-forest', 0), bg: 'gradient-forest', persona: 'warrior', style: 'minimalist', goal: 1500, type: 'me', theme: 'classic' },
-      { id: 'krish', name: 'Krish', avatar: generateAIAvatarSvg('Krish', 'champion', 'futuristic', 'gradient-sunset', 500), bg: 'gradient-sunset', persona: 'champion', style: 'futuristic', goal: 1200, type: 'preset', theme: 'cyber-green' },
+      { id: 'krish', name: 'Krish', avatar: generateAIAvatarSvg('Krish', 'champion', 'futuristic', 'gradient-cyber', 500), bg: 'gradient-cyber', persona: 'champion', style: 'futuristic', goal: 1200, type: 'preset', theme: 'cyber-green' },
       { id: 'rahul', name: 'Rahul', avatar: generateAIAvatarSvg('Rahul', 'guardian', 'professional', 'gradient-ocean', 400), bg: 'gradient-ocean', persona: 'guardian', style: 'professional', goal: 1400, type: 'preset', theme: 'classic' }
     ];
   });
@@ -81,7 +82,6 @@ export default function App() {
   const [isProfileSwitcherOpen, setIsProfileSwitcherOpen] = useState(false);
   const [isManageMode, setIsManageMode] = useState(false);
   const [isHeaderDropdownOpen, setIsHeaderDropdownOpen] = useState(false);
-  const [isSidebarDropdownOpen, setIsSidebarDropdownOpen] = useState(false);
   
   // Add Profile form states
   const [isAddingProfile, setIsAddingProfile] = useState(false);
@@ -647,16 +647,6 @@ export default function App() {
         <div className="py-xs space-y-[2px]">
           <button 
             onClick={() => {
-              setActiveView('rewards');
-              setOpen(false);
-            }}
-            className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg transition-colors text-left"
-          >
-            <span className="material-symbols-outlined text-sm mr-md text-outline">account_circle</span>
-            <span className="text-xs font-semibold">My Profile</span>
-          </button>
-          <button 
-            onClick={() => {
               setActiveView('dashboard');
               setOpen(false);
             }}
@@ -691,27 +681,6 @@ export default function App() {
         <div className="border-t border-outline-variant/40 pt-xs mt-xs space-y-[2px]">
           <button 
             onClick={() => {
-              setIsProfileSwitcherOpen(true);
-              setOpen(false);
-            }}
-            className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg text-secondary transition-colors text-left font-bold"
-          >
-            <span className="material-symbols-outlined text-sm mr-md">switch_account</span>
-            <span className="text-xs">Switch User</span>
-          </button>
-          <button 
-            onClick={() => {
-              setIsProfileSwitcherOpen(true);
-              setIsAddingProfile(true);
-              setOpen(false);
-            }}
-            className="w-full flex items-center px-md py-sm hover:bg-surface-container-high rounded-lg text-emerald-600 transition-colors text-left font-bold"
-          >
-            <span className="material-symbols-outlined text-sm mr-md">person_add</span>
-            <span className="text-xs">Add Account</span>
-          </button>
-          <button 
-            onClick={() => {
               handleSignOut();
               setOpen(false);
             }}
@@ -726,14 +695,91 @@ export default function App() {
   };
 
 
-  // Loading screen
+  // Loading screen - Premium Design
   if (loadingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-surface-container-lowest text-on-surface">
-        <div className="flex flex-col items-center gap-md">
-          <span className="material-symbols-outlined text-[48px] text-secondary animate-spin">sync</span>
-          <span className="font-headline-md">Synchronizing CarbonSense AI...</span>
+      <div className="flex min-h-screen items-center justify-center bg-[#f5f7f5] text-on-surface relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-20 left-20 w-64 h-64 rounded-full bg-[#2d5a27] blur-[100px]"></div>
+          <div className="absolute bottom-20 right-20 w-64 h-64 rounded-full bg-[#2d5a27] blur-[100px]"></div>
         </div>
+
+        <div className="flex flex-col items-center gap-8 relative z-10 max-w-md w-full px-8">
+          {/* Animated Logo with Concentric Circles */}
+          <div className="relative w-48 h-48 flex items-center justify-center">
+            {/* Outer rotating circle */}
+            <div className="absolute inset-0 rounded-full border-2 border-[#e8efe8] animate-spin-slow"></div>
+            
+            {/* Middle circle */}
+            <div className="absolute inset-6 rounded-full border border-[#d4e4d4]"></div>
+            
+            {/* Inner white circle with shadow */}
+            <div className="absolute inset-12 rounded-full bg-white shadow-lg flex items-center justify-center">
+              {/* Leaf icon */}
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M52 12C52 12 36 12 28 28C20 12 12 12 12 12C12 12 12 28 20 36C12 36 12 52 12 52C12 52 28 52 36 44C44 52 52 52 52 52C52 52 52 36 44 28C52 28 52 12 52 12Z" fill="#2d5a27" stroke="#2d5a27" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M28 28C28 28 32 32 36 36" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </div>
+
+            {/* Rotating dot indicator */}
+            <div className="absolute inset-0 animate-spin" style={{ animationDuration: '2s' }}>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#2d5a27]"></div>
+            </div>
+          </div>
+          
+          {/* Title */}
+          <div className="text-center space-y-2">
+            <h1 className="font-headline-xl text-[32px] font-bold text-[#2d5a27] tracking-tight">CarbonSense AI</h1>
+            <p className="font-body-md text-[#6b8569] text-[15px]">Calculating your impact...</p>
+          </div>
+          
+          {/* Progress Bar with Percentage */}
+          <div className="w-full space-y-3">
+            <div className="relative h-2 bg-[#e8f5e8] rounded-full overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-[#2d5a27] via-[#3d6a37] to-[#a8d5a3] rounded-full animate-loading-progress origin-left"></div>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-bold text-[#2d5a27] animate-count-up">30%</span>
+              <span className="font-semibold text-[#6b8569] tracking-wider uppercase text-xs">Syncing</span>
+            </div>
+          </div>
+
+          {/* Footer branding */}
+          <div className="flex items-center gap-2 text-xs text-[#9ba99a] mt-8">
+            <span className="material-symbols-outlined text-base">verified</span>
+            <span className="uppercase tracking-widest font-medium">Powered by CarbonSense AI</span>
+          </div>
+        </div>
+        
+        <style>{`
+          @keyframes loading-progress {
+            0% { transform: scaleX(0); }
+            30% { transform: scaleX(0.3); }
+            60% { transform: scaleX(0.6); }
+            90% { transform: scaleX(0.9); }
+            100% { transform: scaleX(1); }
+          }
+          .animate-loading-progress {
+            animation: loading-progress 2.5s ease-out infinite;
+          }
+          @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          .animate-spin-slow {
+            animation: spin-slow 8s linear infinite;
+          }
+          @keyframes count-up {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+          }
+          .animate-count-up {
+            animation: count-up 2s ease-in-out infinite;
+          }
+        `}</style>
       </div>
     );
   }
@@ -800,7 +846,8 @@ export default function App() {
                     Start Your Green Journey Today
                     <span className="material-symbols-outlined">arrow_forward</span>
                   </button>
-                  <button onClick={handleGuestAccess} className="px-xl py-md border-2 border-outline-variant text-on-surface rounded-xl font-headline-md hover:bg-surface-container-low transition-all">
+                  <button onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })} className="px-xl py-md border-2 border-outline-variant text-on-surface rounded-xl font-headline-md hover:bg-surface-container-low transition-all flex items-center gap-sm">
+                    <span className="material-symbols-outlined">play_circle</span>
                     View Demo (Guest)
                   </button>
                 </div>
@@ -975,28 +1022,121 @@ export default function App() {
                       AI Coach tailored offsets & recommendations
                     </div>
                   </div>
+                  
+                  {/* CTA Buttons */}
+                  <div className="flex flex-wrap gap-md mt-md">
+                    <button 
+                      onClick={() => setIsVideoModalOpen(true)}
+                      className="px-lg py-md bg-secondary text-on-secondary rounded-xl font-label-md font-bold hover:opacity-90 active:scale-95 transition-all shadow-sm flex items-center gap-xs"
+                    >
+                      <span className="material-symbols-outlined text-sm">play_circle</span>
+                      Watch Demo Video
+                    </button>
+                    <button 
+                      onClick={handleGuestAccess}
+                      className="px-lg py-md border-2 border-outline-variant text-on-surface rounded-xl font-label-md font-bold hover:bg-surface-container transition-all flex items-center gap-xs"
+                    >
+                      <span className="material-symbols-outlined text-sm">touch_app</span>
+                      Try Interactive Demo
+                    </button>
+                  </div>
                 </div>
 
                 <div className="lg:col-span-6 flex justify-center items-center relative z-10 w-full">
-                  <div className="w-full max-w-[504px] overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest shadow-xl transition-all hover:shadow-2xl">
-                    <div className="p-sm bg-surface-container-high border-b border-outline-variant flex items-center justify-between">
+                  <div className="w-full max-w-[540px] overflow-hidden rounded-2xl border-2 border-outline-variant bg-surface-container-lowest shadow-2xl transition-all hover:shadow-3xl group">
+                    {/* Browser-style header */}
+                    <div className="p-md bg-surface-container-high border-b border-outline-variant flex items-center justify-between">
                       <div className="flex items-center gap-xs">
-                        <span className="w-3 h-3 rounded-full bg-error"></span>
-                        <span className="w-3 h-3 rounded-full bg-tertiary-fixed-dim"></span>
-                        <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                        <span className="w-3 h-3 rounded-full bg-[#ff5f57]"></span>
+                        <span className="w-3 h-3 rounded-full bg-[#febc2e]"></span>
+                        <span className="w-3 h-3 rounded-full bg-[#28c840]"></span>
                       </div>
-                      <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">LinkedIn Spotlight</span>
-                      <span className="material-symbols-outlined text-on-surface-variant text-md">public</span>
+                      <div className="flex items-center gap-xs px-md py-xs bg-surface-container rounded-lg">
+                        <span className="material-symbols-outlined text-sm text-[#0077b5]">share</span>
+                        <span className="font-label-md text-xs text-on-surface-variant font-bold uppercase tracking-wider">LinkedIn Spotlight</span>
+                      </div>
+                      <div className="flex items-center gap-xs">
+                        <button className="material-symbols-outlined text-sm text-on-surface-variant hover:text-on-surface transition-colors p-1">open_in_new</button>
+                      </div>
                     </div>
-                    <iframe 
-                      src="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7470379385959890944?compact=1" 
-                      height="399" 
-                      className="w-full"
-                      style={{ border: 'none', minHeight: '399px' }} 
-                      allowFullScreen={true}
-                      title="Embedded post"
-                    ></iframe>
+                    
+                    {/* Embedded Content with Loading State */}
+                    <div className="relative bg-white" style={{ minHeight: '399px' }}>
+                      {/* Loading skeleton */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-surface-container-low via-surface-container to-surface-container-low animate-pulse"></div>
+                      
+                      {/* LinkedIn Embed */}
+                      <iframe 
+                        src="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7470379385959890944?compact=1" 
+                        height="399" 
+                        width="100%"
+                        className="relative z-10 w-full border-0"
+                        style={{ minHeight: '399px' }} 
+                        allowFullScreen={true}
+                        title="CarbonSense AI - LinkedIn Community Showcase"
+                        loading="lazy"
+                      ></iframe>
+                    </div>
+                    
+                    {/* Engagement footer */}
+                    <div className="p-md bg-surface-container-high border-t border-outline-variant flex items-center justify-between">
+                      <div className="flex items-center gap-md">
+                        <div className="flex items-center gap-xs text-xs text-on-surface-variant">
+                          <span className="material-symbols-outlined text-sm text-[#0077b5]">thumb_up</span>
+                          <span className="font-bold">1.2k+</span>
+                        </div>
+                        <div className="flex items-center gap-xs text-xs text-on-surface-variant">
+                          <span className="material-symbols-outlined text-sm text-emerald-600">comment</span>
+                          <span className="font-bold">143</span>
+                        </div>
+                        <div className="flex items-center gap-xs text-xs text-on-surface-variant">
+                          <span className="material-symbols-outlined text-sm text-secondary">share</span>
+                          <span className="font-bold">89</span>
+                        </div>
+                      </div>
+                      <a 
+                        href="https://www.linkedin.com/feed/update/urn:li:ugcPost:7470379385959890944" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-xs text-xs font-bold text-[#0077b5] hover:underline transition-all"
+                      >
+                        View on LinkedIn
+                        <span className="material-symbols-outlined text-sm">arrow_outward</span>
+                      </a>
+                    </div>
                   </div>
+                </div>
+              </div>
+              
+              {/* Social Proof Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-md mt-xl">
+                <div className="glass-card p-lg rounded-xl text-center">
+                  <div className="flex items-center justify-center mb-sm">
+                    <span className="material-symbols-outlined text-[#0077b5] text-2xl">groups</span>
+                  </div>
+                  <div className="font-headline-lg text-xl font-bold text-on-surface">50k+</div>
+                  <div className="text-xs text-on-surface-variant uppercase tracking-wider mt-xs">Active Users</div>
+                </div>
+                <div className="glass-card p-lg rounded-xl text-center">
+                  <div className="flex items-center justify-center mb-sm">
+                    <span className="material-symbols-outlined text-emerald-600 text-2xl">eco</span>
+                  </div>
+                  <div className="font-headline-lg text-xl font-bold text-on-surface">1.5k T</div>
+                  <div className="text-xs text-on-surface-variant uppercase tracking-wider mt-xs">CO₂ Offset</div>
+                </div>
+                <div className="glass-card p-lg rounded-xl text-center">
+                  <div className="flex items-center justify-center mb-sm">
+                    <span className="material-symbols-outlined text-amber-500 text-2xl">emoji_events</span>
+                  </div>
+                  <div className="font-headline-lg text-xl font-bold text-on-surface">200+</div>
+                  <div className="text-xs text-on-surface-variant uppercase tracking-wider mt-xs">Eco Champions</div>
+                </div>
+                <div className="glass-card p-lg rounded-xl text-center">
+                  <div className="flex items-center justify-center mb-sm">
+                    <span className="material-symbols-outlined text-secondary text-2xl">workspace_premium</span>
+                  </div>
+                  <div className="font-headline-lg text-xl font-bold text-on-surface">98%</div>
+                  <div className="text-xs text-on-surface-variant uppercase tracking-wider mt-xs">Satisfaction</div>
                 </div>
               </div>
             </div>
@@ -1117,67 +1257,51 @@ export default function App() {
           ))}
         </nav>
 
-        <div className="mt-auto border-t border-outline-variant pt-md flex flex-col gap-md">
-          <button 
-            type="button"
-            onClick={() => {
-              setIsSidebarDropdownOpen(!isSidebarDropdownOpen);
-              setIsHeaderDropdownOpen(false);
-            }}
-            aria-label="Open profile menu"
-            className="flex items-center justify-between gap-sm px-md py-sm rounded-xl hover:bg-surface-container-high transition-all cursor-pointer relative text-left"
-          >
-            <div className="flex items-center gap-md min-w-0">
-              <ProfileAvatar avatar={currentProfileObj.avatar} className="w-10 h-10" />
-              <div className="min-w-0">
-                <p className="font-label-md text-on-surface text-[13px] font-bold truncate">
-                  {currentProfileObj.name}
-                </p>
-                <p className="text-[10px] text-on-surface-variant truncate">
-                  {activeProfile === 'me' ? (user === 'guest' ? 'Guest Sandbox' : user.email) : 'Simulated Account'}
-                </p>
-              </div>
+        <div className="mt-auto border-t border-outline-variant pt-md">
+          <div className="flex items-center gap-md px-md py-sm rounded-xl text-left">
+            <ProfileAvatar avatar={currentProfileObj.avatar} className="w-10 h-10 border border-primary-fixed" />
+            <div className="min-w-0">
+              <p className="font-label-md text-on-surface text-[13px] font-bold truncate">
+                {currentProfileObj.name}
+              </p>
+              <p className="text-[10px] text-on-surface-variant truncate">
+                {activeProfile === 'me' ? (user === 'guest' ? 'Guest Sandbox' : user.email) : 'Simulated Account'}
+              </p>
             </div>
-            <span className="material-symbols-outlined text-outline">more_vert</span>
-          </button>
-          {isSidebarDropdownOpen && renderProfileDropdown('left-0 bottom-14', setIsSidebarDropdownOpen)}
+          </div>
         </div>
       </aside>
 
       {/* Mobile Top Header (Hidden on Desktop) */}
-      <header className="md:hidden h-16 flex items-center justify-between px-margin-mobile bg-surface shadow-[0px_4px_20px_rgba(45,90,39,0.08)] fixed top-0 left-0 right-0 z-40">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed relative flex items-center justify-center bg-white/10 shadow-sm">
-            <ProfileAvatar avatar={currentProfileObj.avatar} className="w-full h-full" />
-          </div>
-          <h1 className="font-headline-lg text-primary font-bold">CarbonSense AI</h1>
+      <header className="md:hidden h-16 flex items-center justify-between px-lg bg-surface shadow-[0px_4px_20px_rgba(45,90,39,0.08)] fixed top-0 left-0 right-0 z-40">
+        <div className="flex items-center gap-xs">
+          <span className="material-symbols-outlined text-primary text-2xl font-bold">spa</span>
+          <h1 className="font-headline-md text-primary font-bold text-[18px]">CarbonSense AI</h1>
         </div>
-        <div className="flex items-center gap-xs relative">
+        <div className="flex items-center gap-sm">
           <button 
             onClick={() => setIsProfileSwitcherOpen(true)}
-            className="bg-secondary-container/85 border border-outline-variant/30 rounded-full px-sm py-xs text-[10px] font-bold text-on-secondary-container flex items-center gap-xs"
+            aria-label="Switch Profile"
+            className="p-2 hover:bg-surface-container-high rounded-full transition-all text-secondary"
           >
-            <span className="material-symbols-outlined text-xs">switch_account</span>
-            <span>Switch</span>
+            <span className="material-symbols-outlined text-[22px]">switch_account</span>
           </button>
           <button 
-            onClick={() => {
-              setIsHeaderDropdownOpen(!isHeaderDropdownOpen);
-              setIsSidebarDropdownOpen(false);
-            }} 
-            aria-label="Open profile menu"
-            className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed relative flex items-center justify-center bg-white/10 cursor-pointer shadow-sm"
+            onClick={() => setIsProfileSwitcherOpen(true)}
+            aria-label="View Profile"
+            className="w-8 h-8 rounded-full overflow-hidden border border-primary-fixed flex items-center justify-center bg-white/10 shadow-sm"
           >
             <ProfileAvatar avatar={currentProfileObj.avatar} className="w-full h-full" />
           </button>
           <button 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            className="text-on-surface cursor-pointer p-xs hover:bg-surface-container-high rounded-full"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 hover:bg-surface-container-high rounded-full transition-all text-on-surface"
+            aria-label="Toggle menu"
           >
-            <span className="material-symbols-outlined text-[28px]">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+            <span className="material-symbols-outlined text-[22px]">
+              {isMobileMenuOpen ? 'close' : 'menu'}
+            </span>
           </button>
-          {isHeaderDropdownOpen && renderProfileDropdown('right-0 top-12', setIsHeaderDropdownOpen)}
         </div>
       </header>
 
@@ -1215,7 +1339,6 @@ export default function App() {
               onClick={() => { 
                 setIsMobileMenuOpen(false); 
                 setIsHeaderDropdownOpen(true); 
-                setIsSidebarDropdownOpen(false);
               }}
               className="flex items-center gap-md cursor-pointer"
             >
@@ -1244,176 +1367,110 @@ export default function App() {
       <style>{`
         /* Premium Dark Neon Theme Styles */
         .theme-cyber-green {
+          --primary: #00ff66;
+          --on-primary: #000000;
+          --primary-container: #0b3d17;
+          --on-primary-container: #00ff66;
+          --secondary: #00e676;
+          --on-secondary: #000000;
+          --secondary-container: #082d13;
+          --on-secondary-container: #00ff88;
           --background: #061208;
+          --on-background: #a3ffd1;
+          --surface: #091a0c;
+          --surface-bright: #091a0c;
+          --surface-dim: #040e05;
+          --surface-container: #0c1f0f;
+          --surface-container-low: #08160a;
+          --surface-container-high: #122c16;
+          --surface-container-highest: #122c16;
+          --surface-container-lowest: #040e05;
           --on-surface: #a3ffd1;
+          --on-surface-variant: #72a38a;
+          --outline: #143e1d;
           --outline-variant: #082d13;
-        }
-        .theme-cyber-green.flex {
-          background-color: #061208 !important;
-          color: #a3ffd1 !important;
-        }
-        .theme-cyber-green .text-on-surface {
-          color: #a3ffd1 !important;
-        }
-        .theme-cyber-green .text-on-surface-variant {
-          color: #72a38a !important;
-        }
-        .theme-cyber-green aside {
-          background-color: #0c1f0f !important;
-          border-right: 1px solid #143e1d !important;
-        }
-        .theme-cyber-green .bg-surface {
-          background-color: #091a0c !important;
-        }
-        .theme-cyber-green .bg-surface-container {
-          background-color: #0c1f0f !important;
-        }
-        .theme-cyber-green .bg-surface-container-high {
-          background-color: #122c16 !important;
-        }
-        .theme-cyber-green .bg-surface-container-highest {
-          background-color: #122c16 !important;
-        }
-        .theme-cyber-green .hover\:bg-surface-container-high:hover {
-          background-color: #1a3e20 !important;
-        }
-        .theme-cyber-green .bg-surface-container-lowest {
-          background-color: #040e05 !important;
-        }
-        .theme-cyber-green .bg-primary {
-          background-color: #00ff66 !important;
-          color: #000000 !important;
-        }
-        .theme-cyber-green .bg-primary-container {
-          background-color: #0b3d17 !important;
-          color: #00ff66 !important;
-        }
-        .theme-cyber-green .text-primary {
-          color: #00ff66 !important;
-        }
-        .theme-cyber-green .border-outline-variant {
-          border-color: #143e1d !important;
-        }
-        .theme-cyber-green .glass-card {
-          background: rgba(12, 31, 15, 0.7) !important;
-          border-color: rgba(0, 255, 102, 0.25) !important;
-          box-shadow: 0 0 20px rgba(0, 255, 102, 0.1) !important;
+          --primary-fixed: #00ff66;
+          --secondary-fixed: #082d13;
+          --surface-variant: #122c16;
+          
+          --text-gradient-start: #00ff66;
+          --text-gradient-end: #00e676;
+          
+          --glass-bg: rgba(12, 31, 15, 0.7);
+          --glass-border: rgba(0, 255, 102, 0.25);
+          --glass-shadow: 0 0 20px rgba(0, 255, 102, 0.1);
         }
 
         /* Premium Gold Theme Styles */
         .theme-gold {
+          --primary: #bf953f;
+          --on-primary: #000000;
+          --primary-container: #463718;
+          --on-primary-container: #bf953f;
+          --secondary: #bf953f;
+          --on-secondary: #000000;
+          --secondary-container: #352c1e;
+          --on-secondary-container: #fcecd7;
           --background: #15110c;
+          --on-background: #fcecd7;
+          --surface: #1e1810;
+          --surface-bright: #1e1810;
+          --surface-dim: #100c08;
+          --surface-container: #261f15;
+          --surface-container-low: #1d1710;
+          --surface-container-high: #352c1e;
+          --surface-container-highest: #352c1e;
+          --surface-container-lowest: #100c08;
           --on-surface: #fcecd7;
+          --on-surface-variant: #bfa88c;
+          --outline: #453825;
           --outline-variant: #3a2e1d;
+          --primary-fixed: #bf953f;
+          --secondary-fixed: #352c1e;
+          --surface-variant: #352c1e;
+          
+          --text-gradient-start: #bf953f;
+          --text-gradient-end: #fcecd7;
+          
+          --glass-bg: rgba(38, 31, 21, 0.75);
+          --glass-border: rgba(191, 149, 63, 0.25);
+          --glass-shadow: 0 0 20px rgba(191, 149, 63, 0.1);
         }
-        .theme-gold.flex {
-          background-color: #15110c !important;
-          color: #fcecd7 !important;
-        }
-        .theme-gold .text-on-surface {
-          color: #fcecd7 !important;
-        }
-        .theme-gold .text-on-surface-variant {
-          color: #bfa88c !important;
-        }
-        .theme-gold aside {
-          background-color: #261f15 !important;
-          border-right: 1px solid #453825 !important;
-        }
-        .theme-gold .bg-surface {
-          background-color: #1e1810 !important;
-        }
-        .theme-gold .bg-surface-container {
-          background-color: #261f15 !important;
-        }
-        .theme-gold .bg-surface-container-high {
-          background-color: #352c1e !important;
-        }
-        .theme-gold .bg-surface-container-highest {
-          background-color: #352c1e !important;
-        }
-        .theme-gold .hover\:bg-surface-container-high:hover {
-          background-color: #483c29 !important;
-        }
-        .theme-gold .bg-surface-container-lowest {
-          background-color: #100c08 !important;
-        }
-        .theme-gold .bg-primary {
-          background-color: #bf953f !important;
-          color: #000000 !important;
-        }
-        .theme-gold .bg-primary-container {
-          background-color: #463718 !important;
-          color: #bf953f !important;
-        }
-        .theme-gold .text-primary {
-          color: #bf953f !important;
-        }
-        .theme-gold .border-outline-variant {
-          border-color: #453825 !important;
-        }
-        .theme-gold .glass-card {
-          background: rgba(38, 31, 21, 0.75) !important;
-          border-color: rgba(191, 149, 63, 0.25) !important;
-          box-shadow: 0 0 20px rgba(191, 149, 63, 0.1) !important;
-        }
-        
+
         /* Dark Neon Theme Styles */
         .theme-dark-neon {
+          --primary: #10b981;
+          --on-primary: #000000;
+          --primary-container: #064e3b;
+          --on-primary-container: #34d399;
+          --secondary: #34d399;
+          --on-secondary: #000000;
+          --secondary-container: #1e293b;
+          --on-secondary-container: #e2e8f0;
           --background: #070b13;
+          --on-background: #e2e8f0;
+          --surface: #0d1321;
+          --surface-bright: #0d1321;
+          --surface-dim: #030710;
+          --surface-container: #0f172a;
+          --surface-container-low: #0b101b;
+          --surface-container-high: #1e293b;
+          --surface-container-highest: #1e293b;
+          --surface-container-lowest: #030710;
           --on-surface: #e2e8f0;
+          --on-surface-variant: #94a3b8;
+          --outline: #1e293b;
           --outline-variant: #1e293b;
-        }
-        .theme-dark-neon.flex {
-          background-color: #070b13 !important;
-          color: #e2e8f0 !important;
-        }
-        .theme-dark-neon .text-on-surface {
-          color: #e2e8f0 !important;
-        }
-        .theme-dark-neon .text-on-surface-variant {
-          color: #94a3b8 !important;
-        }
-        .theme-dark-neon aside {
-          background-color: #0f172a !important;
-          border-right: 1px solid #1e293b !important;
-        }
-        .theme-dark-neon .bg-surface {
-          background-color: #0d1321 !important;
-        }
-        .theme-dark-neon .bg-surface-container {
-          background-color: #0f172a !important;
-        }
-        .theme-dark-neon .bg-surface-container-high {
-          background-color: #1e293b !important;
-        }
-        .theme-dark-neon .bg-surface-container-highest {
-          background-color: #1e293b !important;
-        }
-        .theme-dark-neon .hover\:bg-surface-container-high:hover {
-          background-color: #334155 !important;
-        }
-        .theme-dark-neon .bg-surface-container-lowest {
-          background-color: #030710 !important;
-        }
-        .theme-dark-neon .bg-primary {
-          background-color: #10b981 !important;
-          color: #000000 !important;
-        }
-        .theme-dark-neon .bg-primary-container {
-          background-color: #064e3b !important;
-          color: #34d399 !important;
-        }
-        .theme-dark-neon .text-primary {
-          color: #34d399 !important;
-        }
-        .theme-dark-neon .border-outline-variant {
-          border-color: #1e293b !important;
-        }
-        .theme-dark-neon .glass-card {
-          background: rgba(15, 23, 42, 0.7) !important;
-          border-color: rgba(52, 211, 153, 0.2) !important;
-          box-shadow: 0 0 20px rgba(16, 185, 129, 0.1) !important;
+          --primary-fixed: #10b981;
+          --secondary-fixed: #1e293b;
+          --surface-variant: #1e293b;
+          
+          --text-gradient-start: #10b981;
+          --text-gradient-end: #34d399;
+          
+          --glass-bg: rgba(15, 23, 42, 0.7);
+          --glass-border: rgba(52, 211, 153, 0.2);
+          --glass-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
         }
       `}</style>
 
@@ -1435,7 +1492,6 @@ export default function App() {
             <button 
               onClick={() => {
                 setIsHeaderDropdownOpen(!isHeaderDropdownOpen);
-                setIsSidebarDropdownOpen(false);
               }}
               className="flex items-center gap-sm bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 rounded-full pl-xs pr-md py-xs shadow-sm transition-all"
             >
@@ -1515,7 +1571,7 @@ export default function App() {
         )}
         {activeView === 'analysis' && (
           <div className="p-lg md:p-xl flex-1 flex flex-col">
-            <DatasetAnalysis />
+            <DatasetAnalysis theme={activeTheme} />
           </div>
         )}
         {activeView === 'history' && (
@@ -1523,13 +1579,14 @@ export default function App() {
             <History 
               logs={logsToRender} 
               onDeleteLog={handleDeleteLog}
+              theme={activeTheme}
             />
           </div>
         )}
       </main>
 
       {/* Mobile Bottom Navigation Bar (Hidden on Desktop) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface border-t border-outline-variant z-40 flex justify-around items-center px-4 py-2 rounded-t-xl">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface border-t border-outline-variant z-40 flex justify-around items-center px-2 py-1 rounded-t-xl">
         {[
           { view: 'dashboard', name: 'Home', icon: 'dashboard' },
           { view: 'calculator', name: 'Calculator', icon: 'calculate' },
@@ -1542,18 +1599,31 @@ export default function App() {
             <button 
               key={item.view}
               onClick={() => { setActiveView(item.view); setIsMobileMenuOpen(false); }}
-              className={`flex flex-col items-center justify-center transition-all duration-200 ${
+              className={`flex-1 h-12 min-h-[48px] flex flex-col items-center justify-center transition-all duration-200 ${
                 isActive 
-                  ? 'bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 translate-y-[-2px]' 
+                  ? 'text-primary font-bold' 
                   : 'text-on-surface-variant hover:text-primary'
               }`}
             >
-              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{item.icon}</span>
-              <span className="text-[10px] font-label-md uppercase tracking-wider mt-0.5">{item.name}</span>
+              <div className={`flex items-center justify-center rounded-full px-4 py-1 transition-all ${isActive ? 'bg-secondary-container text-on-secondary-container shadow-sm' : ''}`}>
+                <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{item.icon}</span>
+              </div>
+              <span className="text-[9px] font-label-md uppercase tracking-wider mt-1">{item.name}</span>
             </button>
           );
         })}
       </nav>
+
+      {/* Floating Video Button (Mobile Only) */}
+      {!user && (
+        <button 
+          onClick={() => setIsVideoModalOpen(true)}
+          className="md:hidden fixed bottom-20 right-4 z-50 w-14 h-14 bg-gradient-to-r from-secondary to-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all animate-bounce"
+          aria-label="Watch demo video"
+        >
+          <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>play_circle</span>
+        </button>
+      )}
 
       {/* JioCinema / Hotstar Style "Who's Tracking?" Switch User Gate Modal */}
       {isProfileSwitcherOpen && (
@@ -1911,6 +1981,78 @@ export default function App() {
               >
                 Save
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Video Demo Modal */}
+      {isVideoModalOpen && (
+        <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[120] flex items-center justify-center p-md animate-fade-in">
+          <div className="relative w-full max-w-5xl">
+            {/* Close button */}
+            <button 
+              onClick={() => setIsVideoModalOpen(false)}
+              className="absolute -top-12 right-0 text-white hover:text-secondary transition-colors flex items-center gap-xs text-sm font-bold"
+            >
+              <span className="material-symbols-outlined text-2xl">close</span>
+              Close Video
+            </button>
+
+            {/* Video container */}
+            <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl border-2 border-white/10">
+              {/* 16:9 aspect ratio container */}
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                {/* YouTube video embed - Replace with your actual video URL */}
+                <iframe
+                  className="absolute inset-0 w-full h-full"
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0&rel=0&modestbranding=1"
+                  title="CarbonSense AI Demo Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+
+              {/* Video info footer */}
+              <div className="bg-gradient-to-r from-primary/90 to-secondary/90 p-md flex items-center justify-between">
+                <div>
+                  <h3 className="text-white font-bold text-lg">CarbonSense AI Platform Demo</h3>
+                  <p className="text-white/80 text-sm">See how AI-powered carbon tracking transforms sustainability</p>
+                </div>
+                <button 
+                  onClick={handleGuestAccess}
+                  className="px-lg py-sm bg-white text-primary rounded-lg font-bold text-sm hover:bg-white/90 transition-all flex items-center gap-xs whitespace-nowrap"
+                >
+                  <span className="material-symbols-outlined text-base">touch_app</span>
+                  Try Live Demo
+                </button>
+              </div>
+            </div>
+
+            {/* Feature highlights below video */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-md mt-lg">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-md border border-white/20 text-white">
+                <div className="flex items-center gap-sm mb-sm">
+                  <span className="material-symbols-outlined text-emerald-400">analytics</span>
+                  <h4 className="font-bold">AI Calculator</h4>
+                </div>
+                <p className="text-sm text-white/80">Track your carbon footprint with ML precision</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-md border border-white/20 text-white">
+                <div className="flex items-center gap-sm mb-sm">
+                  <span className="material-symbols-outlined text-amber-400">emoji_events</span>
+                  <h4 className="font-bold">Gamification</h4>
+                </div>
+                <p className="text-sm text-white/80">Earn badges and compete on leaderboards</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-md border border-white/20 text-white">
+                <div className="flex items-center gap-sm mb-sm">
+                  <span className="material-symbols-outlined text-blue-400">psychology</span>
+                  <h4 className="font-bold">AI Coach</h4>
+                </div>
+                <p className="text-sm text-white/80">Get personalized sustainability tips</p>
+              </div>
             </div>
           </div>
         </div>

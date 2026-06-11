@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ProfileAvatar } from '../utils/avatar';
 import coefficients from '../coefficients.json';
+import AIEvaluationScore from './AIEvaluationScore';
 import { Doughnut } from 'react-chartjs-2';
 import { 
   Chart as ChartJS, 
@@ -21,6 +22,13 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
   const challengesWon = rewardsProp ? rewardsProp.unlockedCount : 0;
   const co2Reduced = (offsetTotal / 1000).toFixed(2);
   const points = rewardsProp ? rewardsProp.points : 0;
+
+  const isCyberGreen = activeProfileObj?.theme === 'cyber-green';
+  const isGold = activeProfileObj?.theme === 'gold';
+  const isDarkNeon = activeProfileObj?.theme === 'dark-neon';
+
+  const themePrimaryColor = isCyberGreen ? '#00ff66' : isGold ? '#bf953f' : isDarkNeon ? '#10b981' : '#154212';
+  const themeSecondaryColor = isCyberGreen ? '#00e676' : isGold ? '#bf953f' : isDarkNeon ? '#34d399' : '#3a6758';
   
   let evolutionTitle = 'Seedling';
   let evolutionIcon = '🌱';
@@ -99,8 +107,8 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
       datasets: [{
         data: [tScore, dScore, hScore, lScore],
         backgroundColor: [
-          '#3a6758', // Transport (medium green/sage)
-          '#154212', // Diet (dark green/primary)
+          themeSecondaryColor, // Transport (medium green/sage or dynamic)
+          themePrimaryColor, // Diet (dark green/primary or dynamic)
           '#ffe179', // Housing (yellow/tertiary)
           '#72796e'  // Lifestyle & Waste (slate/outline)
         ],
@@ -108,7 +116,7 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
         borderWidth: 2
       }]
     };
-  }, [currentLog, inputs, latestScore]);
+  }, [currentLog, inputs, latestScore, themePrimaryColor, themeSecondaryColor]);
 
   // 2. Generate Action Recommendations
   const recommendations = useMemo(() => {
@@ -289,22 +297,31 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
             </div>
 
             {/* Profile Statistics */}
-            <div className="w-full lg:w-auto grid grid-cols-2 md:grid-cols-4 gap-md bg-white/10 p-md rounded-2xl border border-white/10 backdrop-blur-sm">
-              <div className="text-center px-sm">
+            <div className="w-full lg:w-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-md bg-white/10 p-md rounded-2xl border border-white/10 backdrop-blur-sm">
+              <div className="text-center sm:text-left md:text-center px-sm py-xs">
                 <span className="text-[10px] uppercase font-bold text-white/70 block tracking-wider">Carbon Score</span>
                 <span className="font-headline-lg text-xl font-bold text-white block mt-xs">{carbonScore}/100</span>
               </div>
-              <div className="text-center px-sm border-l border-white/10">
-                <span className="text-[10px] uppercase font-bold text-white/70 block tracking-wider">Trees Planted</span>
-                <span className="font-headline-lg text-xl font-bold text-white block mt-xs">🌳 {treesPlanted}</span>
+              <div className="text-center sm:text-left md:text-center px-sm py-xs border-t sm:border-t-0 sm:border-l border-white/10 flex items-center justify-center sm:justify-start md:justify-center gap-xs">
+                <span className="text-2xl">🌳</span>
+                <div className="text-left md:text-center">
+                  <span className="text-[10px] uppercase font-bold text-white/70 block tracking-wider md:hidden">Trees Planted</span>
+                  <span className="font-headline-lg text-lg font-bold text-white block">{treesPlanted} Trees</span>
+                </div>
               </div>
-              <div className="text-center px-sm border-l border-white/10">
-                <span className="text-[10px] uppercase font-bold text-white/70 block tracking-wider">Challenges Won</span>
-                <span className="font-headline-lg text-xl font-bold text-white block mt-xs">🏆 {challengesWon}</span>
+              <div className="text-center sm:text-left md:text-center px-sm py-xs border-t sm:border-t-0 sm:border-l border-white/10 flex items-center justify-center sm:justify-start md:justify-center gap-xs">
+                <span className="text-2xl">🏆</span>
+                <div className="text-left md:text-center">
+                  <span className="text-[10px] uppercase font-bold text-white/70 block tracking-wider md:hidden">Challenges Won</span>
+                  <span className="font-headline-lg text-lg font-bold text-white block">{challengesWon} Wins</span>
+                </div>
               </div>
-              <div className="text-center px-sm border-l border-white/10">
-                <span className="text-[10px] uppercase font-bold text-white/70 block tracking-wider">CO₂ Saved</span>
-                <span className="font-headline-lg text-xl font-bold text-white block mt-xs">❄️ {co2Reduced} T</span>
+              <div className="text-center sm:text-left md:text-center px-sm py-xs border-t sm:border-t-0 sm:border-l border-white/10 flex items-center justify-center sm:justify-start md:justify-center gap-xs">
+                <span className="text-2xl">❄️</span>
+                <div className="text-left md:text-center">
+                  <span className="text-[10px] uppercase font-bold text-white/70 block tracking-wider md:hidden">CO₂ Saved</span>
+                  <span className="font-headline-lg text-lg font-bold text-white block">{co2Reduced}T Saved</span>
+                </div>
               </div>
             </div>
           </div>
@@ -315,11 +332,11 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
         <div className="glass-card p-md rounded-2xl flex flex-col gap-base">
           <div className="flex items-center justify-between text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
-            <span>Gross Footprint</span>
+            <span className="flex items-center gap-xs">🌍 Gross Footprint</span>
             <span className="material-symbols-outlined text-outline" style={{ fontSize: '18px' }}>eco</span>
           </div>
           <div className="font-headline-lg text-[28px] font-bold text-on-surface">
-            {latestScore > 0 ? `${latestScore} kg` : 'N/A'}
+            {latestScore > 0 ? `${latestScore} kg CO₂` : 'N/A'}
           </div>
           <div className="font-body-sm text-[12px] text-outline">
             Monthly CO₂ equivalent
@@ -328,7 +345,7 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
 
         <div className="glass-card p-md rounded-2xl flex flex-col gap-base">
           <div className="flex items-center justify-between text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
-            <span>Total Offsets</span>
+            <span className="flex items-center gap-xs">🌱 Total Offsets</span>
             <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>eco</span>
           </div>
           <div className="font-headline-lg text-[28px] font-bold text-emerald-600">
@@ -341,7 +358,7 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
 
         <div className="glass-card p-md rounded-2xl flex flex-col gap-base">
           <div className="flex items-center justify-between text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
-            <span>Net Footprint</span>
+            <span className="flex items-center gap-xs">📉 Net Footprint</span>
             <span className="material-symbols-outlined text-secondary" style={{ fontSize: '18px' }}>monitoring</span>
           </div>
           <div className="font-headline-lg text-[28px] font-bold text-on-surface">
@@ -390,7 +407,7 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
                   r="90" 
                   fill="none" 
                   className="transition-all duration-1000 ease-out"
-                  stroke={netEmissions > 2500 ? '#ba1a1a' : netEmissions < 1500 ? '#154212' : '#3a6758'}
+                  stroke={netEmissions > 2500 ? '#ba1a1a' : netEmissions < 1500 ? themePrimaryColor : themeSecondaryColor}
                   strokeWidth="12"
                   strokeLinecap="round"
                   strokeDasharray={`${2 * Math.PI * 90}`}
@@ -495,6 +512,13 @@ export default function Dashboard({ currentLog, leaderboard, onNavigate, offsetT
               </div>
             )}
           </div>
+
+          {/* AI Evaluation Score Section */}
+          <AIEvaluationScore 
+            currentLog={currentLog} 
+            rewards={rewards} 
+            offsetTotal={offsetTotal}
+          />
 
           {/* Dataset Analysis Preview Card */}
           <div 

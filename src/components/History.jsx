@@ -22,7 +22,15 @@ ChartJS.register(
   Legend
 );
 
-export default function History({ logs, onDeleteLog }) {
+export default function History({ logs, onDeleteLog, theme }) {
+  const isCyberGreen = theme === 'cyber-green';
+  const isGold = theme === 'gold';
+  const isDarkNeon = theme === 'dark-neon';
+
+  const themePrimaryColor = isCyberGreen ? '#00ff66' : isGold ? '#bf953f' : isDarkNeon ? '#10b981' : '#154212';
+  const themeSecondaryColor = isCyberGreen ? '#00e676' : isGold ? '#bf953f' : isDarkNeon ? '#34d399' : '#3a6758';
+  const themeSecondaryAlpha = isCyberGreen ? 'rgba(0, 230, 118, 0.1)' : isGold ? 'rgba(191, 149, 63, 0.1)' : isDarkNeon ? 'rgba(52, 211, 153, 0.1)' : 'rgba(58, 103, 88, 0.1)';
+
   const chartData = useMemo(() => {
     if (!logs || logs.length === 0) {
       return {
@@ -44,11 +52,11 @@ export default function History({ logs, onDeleteLog }) {
         {
           label: 'Carbon Footprint Trend',
           data,
-          borderColor: '#3a6758', // Secondary (Green)
-          backgroundColor: 'rgba(58, 103, 88, 0.1)',
+          borderColor: themeSecondaryColor, // Secondary (Green or dynamic)
+          backgroundColor: themeSecondaryAlpha,
           fill: true,
           tension: 0.3,
-          pointBackgroundColor: '#3a6758',
+          pointBackgroundColor: themeSecondaryColor,
           pointBorderColor: '#ffffff',
           pointBorderWidth: 2,
           pointRadius: 6,
@@ -64,7 +72,7 @@ export default function History({ logs, onDeleteLog }) {
         }
       ]
     };
-  }, [logs]);
+  }, [logs, themeSecondaryColor, themeSecondaryAlpha]);
 
   const chartOptions = {
     responsive: true,

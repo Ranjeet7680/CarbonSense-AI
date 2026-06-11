@@ -30,50 +30,50 @@
             "colors": {
               "on-error-container": "#93000a",
               "tertiary-fixed-dim": "#e8c333",
-              "on-primary": "#ffffff",
-              "background": "#f7faf8",
+              "on-primary": "var(--on-primary, #ffffff)",
+              "background": "var(--background, #f7faf8)",
               "on-secondary-fixed": "#002118",
-              "secondary-container": "#bcedda",
+              "secondary-container": "var(--secondary-container, #bcedda)",
               "tertiary-container": "#cba810",
               "inverse-on-surface": "#eef1ef",
-              "surface-container": "#ebefed",
-              "outline-variant": "#c2c9bb",
+              "surface-container": "var(--surface-container, #ebefed)",
+              "outline-variant": "var(--outline-variant, #c2c9bb)",
               "on-tertiary": "#ffffff",
               "on-primary-fixed": "#002201",
-              "surface-container-high": "#e6e9e7",
-              "secondary-fixed": "#bcedda",
-              "primary-fixed": "#bcf0ae",
-              "on-surface": "#181c1b",
+              "surface-container-high": "var(--surface-container-high, #e6e9e7)",
+              "secondary-fixed": "var(--secondary-fixed, #bcedda)",
+              "primary-fixed": "var(--primary-fixed, #bcf0ae)",
+              "on-surface": "var(--on-surface, #181c1b)",
               "secondary-fixed-dim": "#a1d1bf",
-              "on-surface-variant": "#42493e",
+              "on-surface-variant": "var(--on-surface-variant, #42493e)",
               "inverse-primary": "#a1d494",
               "error-container": "#ffdad6",
               "surface-tint": "#3b6934",
-              "surface-bright": "#f7faf8",
+              "surface-bright": "var(--surface-bright, #f7faf8)",
               "on-secondary-fixed-variant": "#214f41",
-              "surface": "#f7faf8",
-              "on-background": "#181c1b",
+              "surface": "var(--surface, #f7faf8)",
+              "on-background": "var(--on-background, #181c1b)",
               "inverse-surface": "#2d3130",
               "error": "#ba1a1a",
-              "on-primary-container": "#9dd090",
-              "primary-container": "#2d5a27",
+              "on-primary-container": "var(--on-primary-container, #9dd090)",
+              "primary-container": "var(--primary-container, #2d5a27)",
               "on-tertiary-fixed-variant": "#554500",
-              "on-secondary-container": "#406d5e",
-              "outline": "#72796e",
-              "surface-dim": "#d7dbd9",
-              "secondary": "#3a6758",
+              "on-secondary-container": "var(--on-secondary-container, #406d5e)",
+              "outline": "var(--outline, #72796e)",
+              "surface-dim": "var(--surface-dim, #d7dbd9)",
+              "secondary": "var(--secondary, #3a6758)",
               "on-error": "#ffffff",
               "primary-fixed-dim": "#a1d494",
               "on-tertiary-fixed": "#231b00",
-              "primary": "#154212",
-              "surface-container-lowest": "#ffffff",
+              "primary": "var(--primary, #154212)",
+              "surface-container-lowest": "var(--surface-container-lowest, #ffffff)",
               "on-primary-fixed-variant": "#23501e",
-              "on-secondary": "#ffffff",
+              "on-secondary": "var(--on-secondary, #ffffff)",
               "tertiary": "#715c00",
               "tertiary-fixed": "#ffe179",
-              "surface-variant": "#e0e3e1",
-              "surface-container-highest": "#e0e3e1",
-              "surface-container-low": "#f1f4f2",
+              "surface-variant": "var(--surface-variant, #e0e3e1)",
+              "surface-container-highest": "var(--surface-container-highest, #e0e3e1)",
+              "surface-container-low": "var(--surface-container-low, #f1f4f2)",
               "on-tertiary-container": "#4d3e00"
             },
             "borderRadius": {
@@ -125,28 +125,63 @@
     
     <!-- Custom styling utilities matching mockup -->
     <style>
+      :root {
+        --primary: #154212;
+        --on-primary: #ffffff;
+        --primary-container: #2d5a27;
+        --on-primary-container: #9dd090;
+        --secondary: #3a6758;
+        --on-secondary: #ffffff;
+        --secondary-container: #bcedda;
+        --on-secondary-container: #406d5e;
+        --background: #f7faf8;
+        --on-background: #181c1b;
+        --surface: #f7faf8;
+        --surface-bright: #f7faf8;
+        --surface-dim: #d7dbd9;
+        --surface-container: #ebefed;
+        --surface-container-low: #f1f4f2;
+        --surface-container-high: #e6e9e7;
+        --surface-container-highest: #e0e3e1;
+        --surface-container-lowest: #ffffff;
+        --on-surface: #181c1b;
+        --on-surface-variant: #42493e;
+        --outline: #72796e;
+        --outline-variant: #c2c9bb;
+        --primary-fixed: #bcf0ae;
+        --secondary-fixed: #bcedda;
+        --surface-variant: #e0e3e1;
+        
+        --text-gradient-start: #154212;
+        --text-gradient-end: #3a6758;
+        
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(226, 232, 240, 0.8);
+        --glass-shadow: none;
+      }
       .material-symbols-outlined {
         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
       }
       .glass-card {
-        background: rgba(255, 255, 255, 0.7);
+        background: var(--glass-bg, rgba(255, 255, 255, 0.7));
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(226, 232, 240, 0.8);
+        border: 1px solid var(--glass-border, rgba(226, 232, 240, 0.8));
+        box-shadow: var(--glass-shadow, none);
       }
       .glass-panel {
-        background: rgba(255, 255, 255, 0.75);
+        background: var(--glass-bg, rgba(255, 255, 255, 0.75));
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(226, 232, 240, 0.8);
+        border: 1px solid var(--glass-border, rgba(226, 232, 240, 0.8));
       }
       .text-gradient {
-        background: linear-gradient(135deg, #154212 0%, #3a6758 100%);
+        background: linear-gradient(135deg, var(--text-gradient-start, #154212) 0%, var(--text-gradient-end, #3a6758) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }
       .login-gradient {
-        background: linear-gradient(135deg, #154212 0%, #2d5a27 50%, #3a6758 100%);
+        background: linear-gradient(135deg, var(--primary, #154212) 0%, var(--primary-container, #2d5a27) 50%, var(--secondary, #3a6758) 100%);
       }
       .animated-float {
         animation: float 6s ease-in-out infinite;
