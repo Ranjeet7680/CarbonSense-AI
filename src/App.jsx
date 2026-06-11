@@ -23,6 +23,7 @@ import AICoach from './components/AICoach';
 import LearningHub from './components/LearningHub';
 import LeaderboardRewards from './components/LeaderboardRewards';
 import DatasetAnalysis from './components/DatasetAnalysis';
+import LoadingScreen from './components/LoadingScreen';
 
 const STATIC_BENCHMARKS = [
   { id: 'b1', name: 'Alba Green (Vegan, Solar)', score: 712, isBenchmark: true },
@@ -37,6 +38,7 @@ const STATIC_BENCHMARKS = [
 export default function App() {
   const [user, setUser] = useState(null); // null (not logged in), 'guest', or User object
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const [loadingFinished, setLoadingFinished] = useState(false);
   const [activeView, setActiveView] = useState('dashboard');
   const [logs, setLogs] = useState([]);
   const [offsets, setOffsets] = useState([]);
@@ -695,94 +697,8 @@ export default function App() {
   };
 
 
-  // Loading screen - Premium Design
-  if (loadingAuth) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f7f5] text-on-surface relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-20 left-20 w-64 h-64 rounded-full bg-[#2d5a27] blur-[100px]"></div>
-          <div className="absolute bottom-20 right-20 w-64 h-64 rounded-full bg-[#2d5a27] blur-[100px]"></div>
-        </div>
-
-        <div className="flex flex-col items-center gap-8 relative z-10 max-w-md w-full px-8">
-          {/* Animated Logo with Concentric Circles */}
-          <div className="relative w-48 h-48 flex items-center justify-center">
-            {/* Outer rotating circle */}
-            <div className="absolute inset-0 rounded-full border-2 border-[#e8efe8] animate-spin-slow"></div>
-            
-            {/* Middle circle */}
-            <div className="absolute inset-6 rounded-full border border-[#d4e4d4]"></div>
-            
-            {/* Inner white circle with shadow */}
-            <div className="absolute inset-12 rounded-full bg-white shadow-lg flex items-center justify-center">
-              {/* Leaf icon */}
-              <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M52 12C52 12 36 12 28 28C20 12 12 12 12 12C12 12 12 28 20 36C12 36 12 52 12 52C12 52 28 52 36 44C44 52 52 52 52 52C52 52 52 36 44 28C52 28 52 12 52 12Z" fill="#2d5a27" stroke="#2d5a27" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M28 28C28 28 32 32 36 36" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </div>
-
-            {/* Rotating dot indicator */}
-            <div className="absolute inset-0 animate-spin" style={{ animationDuration: '2s' }}>
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#2d5a27]"></div>
-            </div>
-          </div>
-          
-          {/* Title */}
-          <div className="text-center space-y-2">
-            <h1 className="font-headline-xl text-[32px] font-bold text-[#2d5a27] tracking-tight">CarbonSense AI</h1>
-            <p className="font-body-md text-[#6b8569] text-[15px]">Calculating your impact...</p>
-          </div>
-          
-          {/* Progress Bar with Percentage */}
-          <div className="w-full space-y-3">
-            <div className="relative h-2 bg-[#e8f5e8] rounded-full overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-[#2d5a27] via-[#3d6a37] to-[#a8d5a3] rounded-full animate-loading-progress origin-left"></div>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-bold text-[#2d5a27] animate-count-up">30%</span>
-              <span className="font-semibold text-[#6b8569] tracking-wider uppercase text-xs">Syncing</span>
-            </div>
-          </div>
-
-          {/* Footer branding */}
-          <div className="flex items-center gap-2 text-xs text-[#9ba99a] mt-8">
-            <span className="material-symbols-outlined text-base">verified</span>
-            <span className="uppercase tracking-widest font-medium">Powered by CarbonSense AI</span>
-          </div>
-        </div>
-        
-        <style>{`
-          @keyframes loading-progress {
-            0% { transform: scaleX(0); }
-            30% { transform: scaleX(0.3); }
-            60% { transform: scaleX(0.6); }
-            90% { transform: scaleX(0.9); }
-            100% { transform: scaleX(1); }
-          }
-          .animate-loading-progress {
-            animation: loading-progress 2.5s ease-out infinite;
-          }
-          @keyframes spin-slow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-          .animate-spin-slow {
-            animation: spin-slow 8s linear infinite;
-          }
-          @keyframes count-up {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
-          }
-          .animate-count-up {
-            animation: count-up 2s ease-in-out infinite;
-          }
-        `}</style>
-      </div>
-    );
-  }
+  // Render main app views if auth has finished loading
+  const renderMainContent = () => {
 
   // Not Logged In View Options: Landing page or Auth modal/split-screen
   if (!user) {
@@ -2059,4 +1975,14 @@ export default function App() {
       )}
     </div>
   );
+};
+
+return (
+  <>
+    {!loadingAuth && renderMainContent()}
+    {!loadingFinished && (
+      <LoadingScreen isLoading={loadingAuth} onFinished={() => setLoadingFinished(true)} />
+    )}
+  </>
+);
 }

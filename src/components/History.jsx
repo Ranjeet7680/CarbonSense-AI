@@ -27,7 +27,6 @@ export default function History({ logs, onDeleteLog, theme }) {
   const isGold = theme === 'gold';
   const isDarkNeon = theme === 'dark-neon';
 
-  const themePrimaryColor = isCyberGreen ? '#00ff66' : isGold ? '#bf953f' : isDarkNeon ? '#10b981' : '#154212';
   const themeSecondaryColor = isCyberGreen ? '#00e676' : isGold ? '#bf953f' : isDarkNeon ? '#34d399' : '#3a6758';
   const themeSecondaryAlpha = isCyberGreen ? 'rgba(0, 230, 118, 0.1)' : isGold ? 'rgba(191, 149, 63, 0.1)' : isDarkNeon ? 'rgba(52, 211, 153, 0.1)' : 'rgba(58, 103, 88, 0.1)';
 
